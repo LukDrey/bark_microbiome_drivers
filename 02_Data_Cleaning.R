@@ -30,13 +30,14 @@ own_metadata <- utils::read.csv(here::here("Data","sample_data_2.csv"), header =
 # Get the EP_Plot_ID from the Sample names
 own_metadata <- own_metadata %>% tidyr::separate(sample, c(NA, 'Plot_ID', NA) , sep = '_', remove = F)
 
-# Insert EW after the first character of the string in a given cell. 
+# Insert EW after the first character of the string in a given cell.
+# To mirror the Notation used by the Biodiversity Exploratories. 
 own_metadata$Plot_ID <- base::gsub("^(.{1})(.*)$",
                              "\\1EW\\2",
                              own_metadata$Plot_ID)
 
-# Load the Climate data. 
-climate <- utils::read.csv(here::here("TestData","plots_climate_weekly.csv"), header = T, sep = ",")
+# Load the Climate data. Available under https://www.bexis.uni-jena.de/
+climate <- utils::read.csv(here::here("Data","plots_climate_weekly.csv"), header = T, sep = ",")
 
 # Subset to the sampling weeks and 2 weeks before for each Explo. Alb = weeks 16-18,
 # Hai = weeks 17-19, Sch = weeks 18-20. 
@@ -59,8 +60,8 @@ sampling_weeks_clim_avg <- sampling_weeks_clim %>%
 sampling_weeks_clim_avg$Ta_200[sampling_weeks_clim_avg$Plot_ID == "HEW33"] <-
   sampling_weeks_clim_avg$Ta_200[sampling_weeks_clim_avg$Plot_ID == "HEW26"]
 
-# Load the stand structure dataset. 
-stand_structure_full <-  utils::read.csv(here::here("TestData","22766_3_data.csv"), header = T, sep = ";")
+# Load the stand structure dataset. Available at https://www.bexis.uni-jena.de/ dataset ID 22766.
+stand_structure_full <-  utils::read.csv(here::here("Data","22766_3_data.csv"), header = T, sep = ";")
 
 # Subset to the variables we are interested in and give them more meaningful names. 
 stand_structure_variables <- stand_structure_full %>% 
@@ -72,7 +73,8 @@ stand_structure_variables <- stand_structure_full %>%
                 DBH_avg = d_m)
 
 # Load the dataset of the effective number of forest layers = measure of vertical heterogeneity. 
-vertical_heterogeneity <- utils::read.csv(here::here("TestData","27826_3_data.csv"), header = T, sep = ";")
+# Available at https://www.bexis.uni-jena.de/ dataset ID 27826.
+vertical_heterogeneity <- utils::read.csv(here::here("Data","27826_3_data.csv"), header = T, sep = ";")
 
 # We are only interested in the newest data. 
 vertical_heterogeneity_new <- vertical_heterogeneity %>% 
@@ -81,7 +83,8 @@ vertical_heterogeneity_new <- vertical_heterogeneity %>%
 
 # Load the dataset describing the proportion of forest in a 2 km radius around the plot to see 
 # if the plot is situated within a forest or is a smaller patch of trees. 
-surroundings <- utils::read.csv(here::here("TestData","15929_2_data.csv"), header = T, sep = ";")
+# Available at https://www.bexis.uni-jena.de/ dataset ID 15929.
+surroundings <- utils::read.csv(here::here("Data","15929_2_data.csv"), header = T, sep = ";")
 
 # Subset to only keep info on surrounding forest areas. 
 surroundings_forest <- surroundings %>% 
@@ -89,11 +92,14 @@ surroundings_forest <- surroundings %>%
   dplyr::rename(Plot_ID = Plot)
 
 # Load the Canopy Openness dataset. 
-canopy_openness <- utils::read.csv(here::here("TestData","canopy_openness_2019.csv"), header = T, sep = ",") %>% 
+# Available at https://www.bexis.uni-jena.de/ dataset ID 27828.
+canopy_openness <- utils::read.csv(here::here("Data","27828_2_data.csv"), header = T, sep = ",") %>% 
+  dplyr::select(EP, canopy_openness_2019) %>% 
   dplyr::rename(Plot_ID = EP)
 
 # Load in the inventory data of single trees.
-single_trees <- utils::read.csv(here::here('TestData', '21426_3_data.csv'), header = T, sep = ';')
+# Available at https://www.bexis.uni-jena.de/ dataset ID 21426.
+single_trees <- utils::read.csv(here::here('Data', '21426_3_data.csv'), header = T, sep = ';')
 
 # Calculate plot wise number of present tree species. 
 plot_struc <- single_trees %>% 
@@ -127,7 +133,8 @@ plot_comp_final <- plot_comp %>%
   dplyr::select("Plot_ID", "dom_tot_ratio")
 
 # Load the coordinates for the plots. 
-geo <- utils::read.csv(here::here("basic_plot_info.csv"), sep = ";") %>% 
+# Available at https://www.bexis.uni-jena.de/ dataset ID 1000.
+geo <- utils::read.csv(here::here("Data", "basic_plot_info.csv"), sep = ";") %>% 
   dplyr::filter(Landuse == "Forest") %>% 
   dplyr::filter(EP_Plot_ID != "na") %>% 
   dplyr::rename(Plot = EP_Plot_ID) %>% 
@@ -149,7 +156,7 @@ base::rownames(metadata_full) <- metadata_full$sample
 metadata_full$sample <- NULL
 
 # Load in the Algae ASV IDs. 
-algae_asv_IDs <- base::readRDS("algae_asv_IDs.rds")
+algae_asv_IDs <- base::readRDS(here("Data", "algae_asv_IDs.rds"))
 
 # Get the sample names from the algal ASV table. 
 sample_names <- base::colnames(algae_asv_IDs) %>% 
@@ -188,7 +195,7 @@ metadata_full_tree_filtered$Sample_ID <- NULL
 ##---------
 ##  Algae  
 ##---------
-ASV_table_algae_cur <- base::readRDS("ASV_table_algae_cur.rds")
+ASV_table_algae_cur <- base::readRDS(here("Data", "ASV_table_algae_cur.rds"))
 
 # Keep only samples that do represent real tree swabs. Cut Controls.
 asv_algae <- ASV_table_algae_cur$curated_table %>%
@@ -197,7 +204,7 @@ asv_algae <- ASV_table_algae_cur$curated_table %>%
 ##---------
 ##  Bacteria  
 ##---------
-ASV_table_bacteria_cur <- base::readRDS("ASV_table_bacteria_cur.rds")
+ASV_table_bacteria_cur <- base::readRDS(here("Data", "ASV_table_bacteria_cur.rds"))
 
 # Keep only samples that do represent real tree swabs. Cut Controls.
 asv_bacteria <- ASV_table_bacteria_cur$curated_table %>% 
@@ -206,7 +213,7 @@ asv_bacteria <- ASV_table_bacteria_cur$curated_table %>%
 ##---------
 ##  Fungi  
 ##---------
-ASV_table_fungi_cur <- base::readRDS("ASV_table_fungi_cur.rds")
+ASV_table_fungi_cur <- base::readRDS(here("Data", "ASV_table_fungi_cur.rds"))
 
 # Keep only samples that do represent real tree swabs. Cut Controls. 
 asv_fungi <- ASV_table_fungi_cur$curated_table %>%
@@ -319,7 +326,7 @@ bacteria_tax_fin_raw$sequence_bacteria <- NULL
 
 # Load the fungal taxonomy table.
 # (Available as supplementary data)
-tax_fungi <- base::readRDS(here::here("Data", 'tax_table_fungi_new.rds'))
+tax_fungi <- base::readRDS(here::here("Data", 'tax_table_fungi.rds'))
 tax_fungi <- base::as.data.frame(tax_fungi) %>%
   tibble::rownames_to_column('sequence')
 tax_fungi <- tax_fungi %>%
@@ -525,20 +532,17 @@ summary(manova)
 # Plot the correlation of tree species and tree dependent variables. 
 metadata_pairs_2 %>% dplyr::select("dominant_tree", "rH_200", "Ta_200", "stand_density_basal_area",
                                    "DBH_avg", "d_gini", "canopy_openness_2019", "dom_tot_ratio")  
-  GGally::ggpairs()
-
+  
 #################################################################
 ##                          Section 4                          ##
 ##                         Data Saving                         ##
 #################################################################
 
-base::saveRDS(metadata_bark, "metadata_bark.rds")
+base::saveRDS(phy_algae_bark, here("Data", "phy_algae_bark.rds"))
 
-base::saveRDS(phy_algae_bark, "phy_algae_bark.rds")
+base::saveRDS(phy_bacteria_bark, here("Data", "phy_bacteria_bark.rds"))
 
-base::saveRDS(phy_bacteria_bark, "phy_bacteria_bark.rds")
-
-base::saveRDS(phy_fungi_bark, "phy_fungi_bark.rds")
+base::saveRDS(phy_fungi_bark, here("Data", "phy_fungi_bark.rds"))
 
 #################################################################
 ##                          Section 5                          ##
@@ -566,12 +570,6 @@ bacteria_species_list <- metagMisc::phyloseq_to_df(phy_bacteria_bark, addtax = T
 write.csv(algae_species_list, "algae_species_list.csv", row.names = F)
 write.csv(fungi_species_list, "fungi_species_list.csv", row.names = F)
 write.csv(bacteria_species_list, "bacteria_species_list.csv", row.names = F)
-
-###
-# ASV tables
-###
-
-
 
 ###
 # Fasta Files for Genbank

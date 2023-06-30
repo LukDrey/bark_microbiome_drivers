@@ -25,13 +25,14 @@ library(ggeffects); packageVersion("ggeffects")
 ##                        Data Loading                         ##
 #################################################################
 
-phy_algae_bark <- base::readRDS("phy_algae_bark.rds")
+phy_algae_bark <- base::readRDS(here("Data", "phy_algae_bark.rds"))
 
-phy_bacteria_bark <- base::readRDS("phy_bacteria_bark.rds")
+phy_bacteria_bark <- base::readRDS(here("Data", "phy_bacteria_bark.rds"))
 
-phy_fungi_bark <- base::readRDS("phy_fungi_bark.rds")
+phy_fungi_bark <- base::readRDS(here("Data", "phy_fungi_bark.rds"))
 
-metadata_bark <- base::readRDS("metadata_bark.rds")
+metadata_bark <- base::data.frame(phyloseq::sample_data(phy_fungi_bark)) %>% 
+  tibble::rownames_to_column(var = "Sample_ID")
 
 #################################################################
 ##                          Section 3                          ##
@@ -98,141 +99,9 @@ metadata_alpha_scaled <- metadata_alpha %>%
                                  "DBH_avg", "d_gini", "RA_forest", 
                                  "canopy_openness_2019", "dom_tot_ratio"),~(scale(.) %>% as.vector)))
 
-#####
-# Model the alpha diversity in a first step.
-#####
-
-#ALGAE
-lm_q0_alg <- stats::lm(alg_q0 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         bac_q0 +
-                         fun_q0,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q0_alg)  
-base::plot(effects::allEffects(lm_q0_alg))
-base::plot(stats::residuals(lm_q0_alg), stats::fitted(lm_q0_alg))
-stats::qqnorm(stats::residuals(lm_q0_alg))
-stats::qqline(stats::residuals(lm_q0_alg))
-
-lm_q1_alg <- stats::lm(alg_q1 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         bac_q1 +
-                         fun_q1,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q1_alg)  
-base::plot(allEffects(lm_q1_alg))
-base::plot(stats::residuals(lm_q1_alg), stats::fitted(lm_q1_alg))
-stats::qqnorm(stats::residuals(lm_q1_alg))
-stats::qqline(stats::residuals(lm_q1_alg))
-
-lm_q2_alg <- stats::lm(alg_q2 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         bac_q2 +
-                         fun_q2,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q2_alg)  
-base::plot(allEffects(lm_q2_alg))
-base::plot(stats::residuals(lm_q2_alg), stats::fitted(lm_q2_alg))
-stats::qqnorm(stats::residuals(lm_q2_alg))
-stats::qqline(stats::residuals(lm_q2_alg))
-
-# Bacteria
-lm_q0_bac <- stats::lm(bac_q0 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         alg_q0 +
-                         fun_q0,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q0_bac)  
-base::plot(allEffects(lm_q0_bac))
-base::plot(stats::residuals(lm_q0_bac), stats::fitted(lm_q0_bac))
-stats::qqnorm(stats::residuals(lm_q0_bac))
-stats::qqline(stats::residuals(lm_q0_bac))
-
-lm_q1_bac <- stats::lm(bac_q1 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         alg_q1 +
-                         fun_q1,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q1_bac)  
-base::plot(allEffects(lm_q1_bac))
-base::plot(stats::residuals(lm_q1_bac), stats::fitted(lm_q1_bac))
-stats::qqnorm(stats::residuals(lm_q1_bac))
-stats::qqline(stats::residuals(lm_q1_bac))
-
-lm_q2_bac <- stats::lm(bac_q2 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         alg_q2 +
-                         fun_q2,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q2_bac)  
-base::plot(allEffects(lm_q2_bac))
-base::plot(stats::residuals(lm_q2_bac), stats::fitted(lm_q2_bac))
-stats::qqnorm(stats::residuals(lm_q2_bac))
-stats::qqline(stats::residuals(lm_q2_bac))
-
-# Fungi
-lm_q0_fun <- stats::lm(fun_q0 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         bac_q0 +
-                         alg_q0,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q0_fun)  
-base::plot(allEffects(lm_q0_fun))
-base::plot(stats::residuals(lm_q0_fun), stats::fitted(lm_q0_fun))
-stats::qqnorm(stats::residuals(lm_q0_fun))
-stats::qqline(stats::residuals(lm_q0_fun))
-
-lm_q1_fun <- stats::lm(fun_q1 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         bac_q1 +
-                         alg_q1,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q1_fun)  
-base::plot(allEffects(lm_q1_fun))
-base::plot(stats::residuals(lm_q1_fun), stats::fitted(lm_q1_fun))
-stats::qqnorm(stats::residuals(lm_q1_fun))
-stats::qqline(stats::residuals(lm_q1_fun))
-
-lm_q2_fun <- stats::lm(fun_q2 ~ exploratory + 
-                         dominant_tree + 
-                         RA_forest + 
-                         bac_q2 +
-                         alg_q2,
-                       data = metadata_alpha_scaled)
-base::summary(lm_q2_fun)  
-base::plot(allEffects(lm_q2_fun))
-base::plot(stats::residuals(lm_q2_fun), stats::fitted(lm_q2_fun))
-stats::qqnorm(stats::residuals(lm_q2_fun))
-stats::qqline(stats::residuals(lm_q2_fun))
-
-# Correct the p-values using the Benjamini-Hochberg procedure. 
-
-p_step1 <- (summary(lm_q0_alg)$coefficients[-1,4])
-p_step1 <- c(p_step1, summary(lm_q0_bac)$coefficients[-1,4])
-p_step1 <- c(p_step1, summary(lm_q0_fun)$coefficients[-1,4])
-
-p_step1 <- c(p_step1, (summary(lm_q1_alg)$coefficients[-1,4]))
-p_step1 <- c(p_step1, (summary(lm_q1_bac)$coefficients[-1,4]))
-p_step1 <- c(p_step1, (summary(lm_q1_fun)$coefficients[-1,4]))
-
-p_step1 <- c(p_step1, (summary(lm_q2_alg)$coefficients[-1,4]))
-p_step1 <- c(p_step1, (summary(lm_q2_bac)$coefficients[-1,4]))
-p_step1 <- c(p_step1, (summary(lm_q2_fun)$coefficients[-1,4]))
-
-p_adj_step1 <- p.adjust(p_step1, method = "fdr")
-
-p_vals_step1 <- data.frame(names(p_step1) ,round(p_step1, 3), round(p_adj_step1,3))
 
 ############
-# Second step 
+# Linear Models of alpha diversity
 ###########
 
 #ALGAE
@@ -1069,9 +938,9 @@ bac_variance_lm <- rbind(bac_var_lm_q0, bac_var_lm_q1, bac_var_lm_q2) %>%
                                                 "geographic (g)", "abiotic (a)", "biotic (b)")))  %>% 
   mutate(q_lev = factor(q_lev, levels = c("q2", "q1", "q0")))
 
-saveRDS(alg_variance_lm, here::here("alg_variance_lm.rds"))
-saveRDS(fun_variance_lm, here::here("fun_variance_lm.rds"))
-saveRDS(bac_variance_lm, here::here("bac_variance_lm.rds"))
+base::saveRDS(bac_variance_lm, here("Data", "bac_variance_lm.rds"))
+base::saveRDS(alg_variance_lm, here("Data", "alg_variance_lm.rds"))
+base::saveRDS(fun_variance_lm, here("Data", "fun_variance_lm.rds"))
 
 #####
 # Effects plots
@@ -1164,8 +1033,8 @@ algae_temperature_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
-  labs(    
+        text = element_text(size = 7, family = "sans")) +
+  labs(y = "\u03B1-diversity",    
        x= "Temperature") +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 algae_temperature_effect
@@ -1184,8 +1053,8 @@ algae_stand_density_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
-  labs(    
+        text = element_text(size = 7, family = "sans")) +
+  labs(y = "\u03B1-diversity",    
        x= "Stand Density")  +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 algae_stand_density_effect
@@ -1204,8 +1073,8 @@ algae_DBH_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
-  labs(    
+        text = element_text(size = 7, family = "sans")) +
+  labs(y = "\u03B1-diversity",    
        x= "Average DBH") +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 algae_DBH_effect
@@ -1224,8 +1093,8 @@ algae_gini_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
-  labs(    
+        text = element_text(size = 7, family = "sans")) +
+  labs(y = "\u03B1-diversity",    
        x= "Gini Coefficient") +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 algae_gini_effect
@@ -1264,9 +1133,9 @@ algae_dom_tot_ratio_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
-  labs(    
-       x= "Percentage of dominant tree") +
+        text = element_text(size = 7, family = "sans")) +
+  labs(y = "\u03B1-diversity",    
+       x= "Dominant Trees:Total Trees") +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 algae_dom_tot_ratio_effect
 
@@ -1284,11 +1153,38 @@ algae_forest_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
-  labs(    
+        text = element_text(size = 7, family = "sans")) +
+  labs(y = "\u03B1-diversity",   
        x= "Surrounding Forest Area") +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 algae_forest_effect
+
+###
+#Region effect
+###
+
+alg_q0_pred_region <- ggeffects::ggpredict(lm_q0_alg_second, terms = "exploratory")
+alg_q1_pred_region <- ggeffects::ggpredict(lm_q1_alg_second, terms = "exploratory")
+alg_q2_pred_region <- ggeffects::ggpredict(lm_q2_alg_second, terms = "exploratory")
+
+algae_region_effect <- ggplot2::ggplot() +
+  ggplot2::geom_boxplot(data = alg_q0_pred_region, mapping = aes(x = x, y = predicted),
+                        color = algae_col) +
+  ggplot2::geom_boxplot(data = alg_q1_pred_region, mapping = aes(x = x, y = predicted),
+                        color = algae_col, linetype = "dotdash", linewidth = 0.7) +
+  ggplot2:: geom_boxplot(data = alg_q2_pred_region, mapping = aes(x = x, y = predicted),
+                         color = algae_col, linetype = "dotted", linewidth = 0.7) +
+  ggplot2::theme_bw() +
+  ggplot2::theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                 text = element_text(size = 7, family = "sans")) +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 1)) +
+  scale_x_discrete(labels = c("South-West", "Central", "North-East")) +
+  labs(y = "\u03B1-diversity",
+       x= "Region") 
+
+algae_region_effect
+
 
 ###########
 # Effects on bacteria
@@ -1491,7 +1387,7 @@ bacteria_dom_tot_ratio_effect <- ggplot() +
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(    
-       x= "Percentage of dominant tree") +
+       x= "Dominant Trees:Total Trees") +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 bacteria_dom_tot_ratio_effect
 
@@ -1514,6 +1410,31 @@ bacteria_forest_effect <- ggplot() +
        x= "Surrounding Forest Area") +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 bacteria_forest_effect
+
+###
+#Region effect
+###
+
+bac_q0_pred_region <- ggeffects::ggpredict(lm_q0_bac_second, terms = "exploratory")
+bac_q1_pred_region <- ggeffects::ggpredict(lm_q1_bac_second, terms = "exploratory")
+bac_q2_pred_region <- ggeffects::ggpredict(lm_q2_bac_second, terms = "exploratory")
+
+bacteria_region_effect <- ggplot2::ggplot() +
+  ggplot2::geom_boxplot(data = bac_q0_pred_region, mapping = aes(x = x, y = predicted),
+                        color = bacteria_col) +
+  ggplot2::geom_boxplot(data = bac_q1_pred_region, mapping = aes(x = x, y = predicted),
+                        color = bacteria_col, linetype = "dotdash", linewidth = 0.7) +
+  ggplot2:: geom_boxplot(data = bac_q2_pred_region, mapping = aes(x = x, y = predicted),
+                         color = bacteria_col, linetype = "dotted", linewidth = 0.7) +
+  ggplot2::theme_bw() +
+  ggplot2::theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                 text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 1)) +
+  scale_x_discrete(labels = c("South-West", "Central", "North-East")) +
+  labs(x= "Region") 
+
+bacteria_region_effect
 
 ###########
 # Effects on Fungi
@@ -1719,7 +1640,7 @@ fungi_dom_tot_ratio_effect <- ggplot() +
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(    
-       x= "Percentage of dominant tree") +
+       x= "Dominant Trees:Total Trees") +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 fungi_dom_tot_ratio_effect
 
@@ -1743,8 +1664,33 @@ fungi_forest_effect <- ggplot() +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1))
 fungi_forest_effect
 
+###
+#Region effect
+###
+
+fun_q0_pred_region <- ggeffects::ggpredict(lm_q0_fun_second, terms = "exploratory")
+fun_q1_pred_region <- ggeffects::ggpredict(lm_q1_fun_second, terms = "exploratory")
+fun_q2_pred_region <- ggeffects::ggpredict(lm_q2_fun_second, terms = "exploratory")
+
+fungi_region_effect <- ggplot2::ggplot() +
+  ggplot2::geom_boxplot(data = fun_q0_pred_region, mapping = aes(x = x, y = predicted),
+                        color = fungi_col) +
+  ggplot2::geom_boxplot(data = fun_q1_pred_region, mapping = aes(x = x, y = predicted),
+                        color = fungi_col, linetype = "dotdash", linewidth = 0.7) +
+  ggplot2:: geom_boxplot(data = fun_q2_pred_region, mapping = aes(x = x, y = predicted),
+                         color = fungi_col, linetype = "dotted", linewidth = 0.7) +
+  ggplot2::theme_bw() +
+  ggplot2::theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                 text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 1)) +
+  scale_x_discrete(labels = c("South-West", "Central", "North-East")) +
+  labs(x= "Region") 
+
+fungi_region_effect
+
 ############
-# Arrange in final figure
+# Plotting of the main text figures
 ############
 
 alpha_legend <- ggpubr::get_legend(ggplot() +
@@ -1794,10 +1740,78 @@ effects_alpha <- ggpubr::ggarrange(effects_algae3, effects_fungi, effects_bacter
                                    nrow = 3, common.legend = T, legend = "bottom",
                                    legend.grob = alpha_legend)
 effects_alpha
-ggplot2::ggsave("effects_alpha.pdf", plot = effects_alpha, device = cairo_pdf,
+
+ggplot2::ggsave(here("Figures", "effects_alpha.eps"), plot = effects_alpha, device = cairo_ps,
+       width = 175, height = 150, units = "mm", dpi = 600, bg = "white")
+
+ggplot2::ggsave(here("Figures", "effects_alpha.png"), plot = effects_alpha, device = png,
        width = 175, height = 150, units = "mm")
 
-ggplot2::ggsave("effects_alpha.png", plot = effects_alpha, device = png,
-       width = 175, height = 150, units = "mm")
+
+#####
+# Plotting supplementary alpha effect figures
+#####
+
+###
+#Algae
+###
+
+supplementary_alpha_algae <- ggpubr::ggarrange(algae_temperature_effect,
+                                              algae_DBH_effect,
+                                              algae_gini_effect,
+                                              algae_stand_density_effect,
+                                              algae_dom_tot_ratio_effect,
+                                              algae_forest_effect,
+                                              algae_region_effect,
+                                              nrow = 7, ncol = 1)  %>% 
+  ggpubr::annotate_figure(top = ggpubr::text_grob("Algae",  color = "black", face = "bold", size = 7))
+
+supplementary_alpha_algae
+
+###
+#Fungi
+###
+
+supplementary_alpha_fungi <- ggpubr::ggarrange(fungi_temperature_effect,
+                                              fungi_DBH_effect,
+                                              fungi_gini_effect,
+                                              fungi_stand_density_effect,
+                                              fungi_dom_tot_ratio_effect,
+                                              fungi_forest_effect,
+                                              fungi_region_effect,
+                                              nrow = 7, ncol = 1) %>% 
+  ggpubr::annotate_figure(top = ggpubr::text_grob("Fungi",  color = "black", face = "bold", size = 7))
+
+supplementary_alpha_fungi
+
+###
+#Bacteria
+###
+
+supplementary_alpha_bacteria <- ggpubr::ggarrange(bacteria_temperature_effect,
+                                                 bacteria_DBH_effect,
+                                                 bacteria_gini_effect,
+                                                 bacteria_stand_density_effect,
+                                                 bacteria_dom_tot_ratio_effect,
+                                                 bacteria_forest_effect,
+                                                 bacteria_region_effect,
+                                                 nrow = 7, ncol = 1) %>% 
+  ggpubr::annotate_figure(top = ggpubr::text_grob("Bacteria",  color = "black", face = "bold", size = 7))
+
+supplementary_alpha_bacteria
+
+# Final arrangement 
+
+effects_alpha_supplementary <- ggpubr::ggarrange(supplementary_alpha_algae,
+                                                supplementary_alpha_fungi,
+                                                supplementary_alpha_bacteria,
+                                                nrow = 1, ncol = 3, legend.grob = alpha_legend, legend = "bottom") 
+
+effects_alpha_supplementary
 
 
+ggplot2::ggsave(here("Figures", "effects_alpha_supplementary.eps"), plot = effects_alpha_supplementary, device = cairo_ps,
+                width = 175, height = 250, units = "mm", dpi = 600, bg = "white")
+
+ggplot2::ggsave(here("Figures","effects_alpha_supplementary.png"), plot = effects_alpha_supplementary, device = png,
+                width = 175, height = 250, units = "mm")

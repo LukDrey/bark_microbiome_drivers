@@ -39,15 +39,14 @@ cqn_q1 <- function(beta, N){1-log(beta)/log(N)}
 ##                        Data Loading                         ##
 #################################################################
 
-phy_algae_bark <- base::readRDS("phy_algae_bark.rds")
+phy_algae_bark <- base::readRDS(here("Data", "phy_algae_bark.rds"))
 
-phy_bacteria_bark <- base::readRDS("phy_bacteria_bark.rds")
+phy_bacteria_bark <- base::readRDS(here("Data", "phy_bacteria_bark.rds"))
 
-phy_fungi_bark <- base::readRDS("phy_fungi_bark.rds")
+phy_fungi_bark <- base::readRDS(here("Data", "phy_fungi_bark.rds"))
 
-metadata_bark <- base::readRDS("metadata_bark.rds")
-
-metadata_full_tree_filtered_gdm <- base::readRDS("metadata_full_tree_filtered_gdm.rds")
+metadata_bark <- base::data.frame(phyloseq::sample_data(phy_fungi_bark)) %>% 
+  tibble::rownames_to_column(var = "Sample_ID")
 
 #################################################################
 ##                          Section 3                          ##
@@ -1053,7 +1052,8 @@ algae_humidity_effect <- ggplot() +
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans")) +
   labs(x= "Relative Humidity",    
-       y= "Algal \u03B2-diversity")
+       y= "\u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 algae_humidity_effect
 
 ######
@@ -1075,9 +1075,10 @@ fungi_humidity_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Relative Humidity",    
-       y= "Fungal \u03B2-diversity")
+       y= "Fungal \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 fungi_humidity_effect
 
 ######
@@ -1093,9 +1094,10 @@ bacteria_humidity_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Relative Humidity",    
-       y= "Bacterial \u03B2-diversity")
+       y= "Bacterial \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 bacteria_humidity_effect
 
 # Temperature
@@ -1233,7 +1235,8 @@ algae_gini_effect <- ggplot() +
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans")) +
   labs(x= "Gini Coefficient",    
-       y= "Algal \u03B2-diversity")
+       y= "\u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 algae_gini_effect
 
 ######
@@ -1249,9 +1252,10 @@ fungi_gini_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Gini Coefficient",    
-       y= "Fungal \u03B2-diversity")
+       y= "Fungal \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 fungi_gini_effect
 
 ######
@@ -1276,9 +1280,10 @@ bacteria_gini_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
-  labs(x= "Gini Coefficient",    
-       y= "Bacterial \u03B2-diversity")
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
+  labs(x= "Gini Coefficient",     
+       y= "Bacterial \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 bacteria_gini_effect
 
 # Geographic Distance
@@ -1326,9 +1331,10 @@ algae_geo_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
+        text = element_text(size = 7, family = "sans")) +
   labs(x= "Geographic Distance",    
-       y= "Algal \u03B2-diversity")
+       y= "\u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 algae_geo_effect
 
 ######
@@ -1355,7 +1361,8 @@ fungi_geo_effect <- ggplot() +
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Geographic Distance",    
-       y= "Fungal \u03B2-diversity")
+       y= "Fungal \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 fungi_geo_effect
 
 ######
@@ -1373,8 +1380,88 @@ bacteria_geo_effect <- ggplot() +
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Geographic Distance",    
-       y= "Bacterial \u03B2-diversity")
+       y= "Bacterial \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 bacteria_geo_effect
+
+# average DBH
+gdm_alg_q0_plot_dbh <- data.frame(x_dbh = gdm_alg_q0_splineDat$x[,"DBH_avg"], 
+                                     y_dbh = gdm_alg_q0_splineDat$y[,"DBH_avg"])
+gdm_alg_q1_plot_dbh <- data.frame(x_dbh = gdm_alg_q1_splineDat$x[,"DBH_avg"], 
+                                     y_dbh = gdm_alg_q1_splineDat$y[,"DBH_avg"])
+gdm_alg_q2_plot_dbh <- data.frame(x_dbh = gdm_alg_q2_splineDat$x[,"DBH_avg"], 
+                                     y_dbh = gdm_alg_q2_splineDat$y[,"DBH_avg"])
+
+gdm_bac_q0_plot_dbh <- data.frame(x_dbh = gdm_bac_q0_splineDat$x[,"DBH_avg"],
+                                     y_dbh = gdm_bac_q0_splineDat$y[,"DBH_avg"])
+gdm_bac_q1_plot_dbh <- data.frame(x_dbh = gdm_bac_q1_splineDat$x[,"DBH_avg"],
+                                     y_dbh = gdm_bac_q1_splineDat$y[,"DBH_avg"])
+gdm_bac_q2_plot_dbh <- data.frame(x_dbh = gdm_bac_q2_splineDat$x[,"DBH_avg"],
+                                     y_dbh = gdm_bac_q2_splineDat$y[,"DBH_avg"])
+
+gdm_fun_q0_plot_dbh <- data.frame(x_dbh = gdm_fun_q0_splineDat$x[,"DBH_avg"],
+                                     y_dbh = gdm_fun_q0_splineDat$y[,"DBH_avg"])
+gdm_fun_q1_plot_dbh <- data.frame(x_dbh = gdm_fun_q1_splineDat$x[,"DBH_avg"],
+                                     y_dbh = gdm_fun_q1_splineDat$y[,"DBH_avg"])
+gdm_fun_q2_plot_dbh <- data.frame(x_dbh = gdm_fun_q2_splineDat$x[,"DBH_avg"],
+                                     y_dbh = gdm_fun_q2_splineDat$y[,"DBH_avg"])
+
+######
+# Effect on algal communities
+######
+algae_dbh_effect <- ggplot() +
+  geom_line(data = gdm_alg_q0_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = algae_col, linewidth = 0.7) + 
+  geom_line(data = gdm_alg_q1_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = algae_col, linewidth = 0.7, linetype = "dotdash") + 
+  geom_line(data = gdm_alg_q2_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = algae_col, linewidth = 0.7, linetype = "dotted") + 
+  theme_bw() + 
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+        text = element_text(size = 7, family = "sans")) +
+  labs(x= "Average DBH",    
+       y= "\u03B2-diversity")+
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
+algae_dbh_effect
+
+######
+# Effect on fungal communities
+######
+fungi_dbh_effect <- ggplot() +
+  geom_line(data = gdm_fun_q0_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = fungi_col, linewidth = 0.7) + 
+  geom_line(data = gdm_fun_q1_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = fungi_col, linewidth = 0.7, linetype = "dotdash") + 
+  geom_line(data = gdm_fun_q2_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = fungi_col, linewidth = 0.7, linetype = "dotted") + 
+  theme_bw() + 
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
+  labs(x= "Average DBH",    
+       y= "Fungal \u03B2-diversity")+
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
+fungi_dbh_effect
+
+######
+# Effect on bacterial communities
+######
+bacteria_dbh_effect <- ggplot() +
+  geom_line(data = gdm_bac_q0_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = bacteria_col, linewidth = 0.7) + 
+  geom_line(data = gdm_bac_q1_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
+  geom_line(data = gdm_bac_q2_plot_dbh, aes(x = x_dbh, y = y_dbh),
+            color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
+  theme_bw() + 
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
+  labs(x= "Average DBH (cm)",    
+       y= "Bacterial \u03B2-diversity")+
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
+bacteria_dbh_effect
 
 # Fungal beta effect
 gdm_alg_q0_plot_fungi <- data.frame(x_fungi = gdm_alg_q0_splineDat$x[,"fun_q0_cqn"], 
@@ -1629,7 +1716,8 @@ algae_density_effect <- ggplot() +
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans")) +
   labs(x= "Stand density",    
-       y= "Algal \u03B2-diversity")
+       y= "\u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 algae_density_effect
 
 ######
@@ -1648,9 +1736,10 @@ fungi_density_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Stand density",    
-       y= "Fungal \u03B2-diversity")
+       y= "Fungal \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 fungi_density_effect
 
 ######
@@ -1669,9 +1758,10 @@ bacteria_density_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Stand density",    
-       y= "Bacterial \u03B2-diversity")
+       y= "Bacterial \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 bacteria_density_effect
 
 # Surrounding Forest effect
@@ -1710,8 +1800,9 @@ algae_forest_effect <- ggplot() +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans")) +
-  labs(x= "Surrounding Forest",    
-       y= "Algal \u03B2-diversity")
+  labs(x= "Surrounding Forest Area",    
+       y= "\u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 algae_forest_effect
 
 ######
@@ -1730,9 +1821,10 @@ fungi_forest_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Surrounding Forest",    
-       y= "Fungal \u03B2-diversity")
+       y= "Fungal \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 fungi_forest_effect
 
 ######
@@ -1751,9 +1843,10 @@ bacteria_forest_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Surrounding Forest",    
-       y= "Bacterial \u03B2-diversity")
+       y= "Bacterial \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 bacteria_forest_effect
 
 # Dominant Tree effect
@@ -1793,7 +1886,8 @@ algae_dominant_effect <- ggplot() +
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
         text = element_text(size = 7, family = "sans")) +
   labs(x= "Dominant Trees:Total Trees",    
-       y= "Algal \u03B2-diversity")
+       y= "\u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 algae_dominant_effect
 
 ######
@@ -1809,9 +1903,10 @@ fungi_dominant_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Dominant Trees:Total Trees",    
-       y= "Fungal \u03B2-diversity")
+       y= "Fungal \u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 fungi_dominant_effect
 
 ######
@@ -1827,9 +1922,10 @@ bacteria_dominant_effect <- ggplot() +
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-        text = element_text(size = 7, family = "sans")) +
+        text = element_text(size = 7, family = "sans"), axis.title.y = element_blank()) +
   labs(x= "Dominant Trees:Total Trees",    
-       y= "Bacterial \u03B2-diversity")
+       y= "Bacter\u03B2-diversity") +
+  scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 bacteria_dominant_effect
 
 #####
@@ -1892,12 +1988,79 @@ effects_beta <- ggpubr::ggarrange(beta_effects_algae3, beta_effects_fungi, beta_
 
 
 effects_beta
-ggplot2::ggsave("effects_beta.pdf", plot = effects_beta, device = cairo_pdf,
+
+ggplot2::ggsave(here("Figures", "effects_beta.eps"), plot = effects_beta, device = cairo_ps,
+       width = 175, height = 150, units = "mm", dpi = 600, bg = "white")
+
+ggplot2::ggsave(here("Figures", "effects_beta.png"), plot = effects_beta, device = png,
        width = 175, height = 150, units = "mm")
 
-ggplot2::ggsave("effects_beta.png", plot = effects_beta, device = png,
-       width = 175, height = 150, units = "mm")
 
+#####
+# Plotting supplementary beta effect figures
+#####
+
+###
+#Algae
+###
+
+supplementary_beta_algae <- ggpubr::ggarrange(algae_humidity_effect,
+                                              algae_dbh_effect,
+                                              algae_gini_effect,
+                                              algae_density_effect,
+                                              algae_dominant_effect,
+                                              algae_forest_effect,
+                                              algae_geo_effect,
+                                              nrow = 7, ncol = 1)  %>% 
+  ggpubr::annotate_figure(top = ggpubr::text_grob("Algae",  color = "black", face = "bold", size = 7))
+
+supplementary_beta_algae
+
+###
+#Fungi
+###
+
+supplementary_beta_fungi <- ggpubr::ggarrange(fungi_humidity_effect,
+                                              fungi_dbh_effect,
+                                              fungi_gini_effect,
+                                              fungi_density_effect,
+                                              fungi_dominant_effect,
+                                              fungi_forest_effect,
+                                              fungi_geo_effect,
+                                              nrow = 7, ncol = 1) %>% 
+  ggpubr::annotate_figure(top = ggpubr::text_grob("Fungi",  color = "black", face = "bold", size = 7))
+
+supplementary_beta_fungi
+
+###
+#Bacteria
+###
+
+supplementary_beta_bacteria <- ggpubr::ggarrange(bacteria_humidity_effect,
+                                              bacteria_dbh_effect,
+                                              bacteria_gini_effect,
+                                              bacteria_density_effect,
+                                              bacteria_dominant_effect,
+                                              bacteria_forest_effect,
+                                              nrow = 7, ncol = 1) %>% 
+  ggpubr::annotate_figure(top = ggpubr::text_grob("Bacteria",  color = "black", face = "bold", size = 7))
+
+supplementary_beta_bacteria
+
+# Final arrangement 
+
+effects_beta_supplementary <- ggpubr::ggarrange(supplementary_beta_algae,
+                                                supplementary_beta_fungi,
+                                                supplementary_beta_bacteria,
+                                                nrow = 1, ncol = 3, legend.grob = beta_legend, legend = "bottom") 
+
+effects_beta_supplementary
+
+ggplot2::ggsave(here("Figures", "effects_beta_supplementary.eps"), plot = effects_beta_supplementary,
+                device = cairo_ps, width = 175, height = 250, units = "mm", dpi = 600, bg = "white")
+
+ggplot2::ggsave(here("Figures", "effects_beta_supplementary.png"), plot = effects_beta_supplementary, device = png,
+                width = 175, height = 250, units = "mm")
 
 ###
 #Community Barplots
@@ -1929,51 +2092,51 @@ phy_alg_ord_top25_plot <-  phy_alg_ord_top25_named %>%
   microbiome::transform(transform = "compositional") 
 
 # Extract the names of the Orders.
-taxa_names(phy_alg_ord_top25_plot) <- tax_table(phy_alg_ord_top25_plot)[, 4]
+phyloseq::taxa_names(phy_alg_ord_top25_plot) <- phyloseq::tax_table(phy_alg_ord_top25_plot)[, 4]
 
 # Sort the taxa names alphabetically. 
-taxa_names_alg_ord <- sort(taxa_names(phy_alg_ord_top25_plot))
+taxa_names_alg_ord <- base::sort(phyloseq::taxa_names(phy_alg_ord_top25_plot))
 
 # To get our desired plotting order and group names we need to change 
 # the exploratory names and order them as factors.
-sampledata_algae <- data.frame(sample_data(phy_alg_ord_top25_plot))
+sampledata_algae <- base::data.frame(phyloseq::sample_data(phy_alg_ord_top25_plot))
 sampledata_algae <- sampledata_algae %>% 
-  mutate(across("exploratory", stringr::str_replace, "Alb", "Swabian Alb")) %>% 
-  mutate(across("exploratory", stringr::str_replace, "Hainich", "Hainich-Dün")) %>% 
-  mutate(across("exploratory", stringr::str_replace, "Schorfheide", "Schorfheide-Chorin")) 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Alb", "South-West")) %>% 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Hainich", "Central")) %>% 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Schorfheide", "North-East")) 
 
-sampledata_algae$exploratory <- factor(sampledata_algae$exploratory, 
-                                          levels = c("Swabian Alb", "Hainich-Dün", "Schorfheide-Chorin"))  
+sampledata_algae$exploratory <- base::factor(sampledata_algae$exploratory, 
+                                          levels = c("South-West", "Central", "North-East"))  
 
-sample_data(phy_alg_ord_top25_plot) <- sample_data(sampledata_algae)
+phyloseq::sample_data(phy_alg_ord_top25_plot) <- phyloseq::sample_data(sampledata_algae)
 
 # Custom plotting to make a nice stacked barplot. 
 alg_ord_plots <- phy_alg_ord_top25_plot %>%
   microbiome::plot_composition(group_by =  'exploratory', otu.sort = taxa_names_alg_ord) +
-  scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
-  guides(fill = guide_legend(title.position = 'top')) +
-  theme(panel.grid.major.x = element_blank(), 
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_blank(),
-        axis.ticks = element_line(colour = 'black', linewidth = 0.25),
-        axis.text.x =  element_blank(),
-        axis.text.y =  element_text(colour = "black"),
-        axis.title = element_text(colour = "black"),
+  ggplot2::scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
+  ggplot2::guides(fill = ggplot2::guide_legend(title.position = 'top')) +
+  ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(), 
+        panel.grid.major.y = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        panel.background = ggplot2::element_blank(),
+        axis.line = ggplot2::element_blank(),
+        axis.ticks = ggplot2::element_line(colour = 'black', linewidth = 0.25),
+        axis.text.x =  ggplot2::element_blank(),
+        axis.text.y =  ggplot2::element_text(colour = "black"),
+        axis.title = ggplot2::element_text(colour = "black"),
         legend.position = 'bottom', 
-        plot.title = element_text(vjust = -4, hjust = 0.03), 
-        legend.text = element_text(colour = 'black', size = 7),
-        legend.title =  element_text(size = 7),
-        legend.key.size = unit(2.5, 'mm'),
-        axis.ticks.length.x = unit(-0.2, "cm"), 
-        legend.box.spacing = unit(-4, 'mm'),
-        legend.background = element_rect(fill = 'transparent'),
-        text = element_text(colour = 'black', size = 7)) + 
-  xlab('Sample') +
-  ylab('Relative abundance')  +
-  scale_y_continuous(label = scales::percent)  + 
-  labs( subtitle = 'Algae')
+        plot.title = ggplot2::element_text(vjust = -4, hjust = 0.03), 
+        legend.text = ggplot2::element_text(colour = 'black', size = 7),
+        legend.title =  ggplot2::element_text(size = 7),
+        legend.key.size = ggplot2::unit(2.5, 'mm'),
+        axis.ticks.length.x = ggplot2::unit(-0.2, "cm"), 
+        legend.box.spacing = ggplot2::unit(-4, 'mm'),
+        legend.background = ggplot2::element_rect(fill = 'transparent'),
+        text = ggplot2::element_text(colour = 'black', size = 7)) + 
+  ggplot2::xlab('Sample') +
+  ggplot2::ylab('Relative abundance')  +
+  ggplot2::scale_y_continuous(label = scales::percent)  + 
+  ggplot2::labs( subtitle = 'Algae')
 
 alg_ord_plots
 
@@ -1999,52 +2162,52 @@ phy_bac_ord_top25_plot <-  phy_bac_ord_top25_named %>%
   microbiome::transform(transform = "compositional") 
 
 # Extract the names of the Orders.
-taxa_names(phy_bac_ord_top25_plot) <- tax_table(phy_bac_ord_top25_plot)[, 4]
+phyloseq::taxa_names(phy_bac_ord_top25_plot) <- phyloseq::tax_table(phy_bac_ord_top25_plot)[, 4]
 
 # Sort the taxa names alphabetically. 
-taxa_names_bac_ord <- sort(taxa_names(phy_bac_ord_top25_plot))
+taxa_names_bac_ord <- base::sort(phyloseq::taxa_names(phy_bac_ord_top25_plot))
 
 # To get our desired plotting order and group names we need to change 
 # the exploratory names and order them as factors.
-sampledata_bacteria <- data.frame(sample_data(phy_bac_ord_top25_plot))
+sampledata_bacteria <- base::data.frame(phyloseq::sample_data(phy_bac_ord_top25_plot))
 sampledata_bacteria <- sampledata_bacteria %>% 
-  mutate(across("exploratory", stringr::str_replace, "Alb", "Swabian Alb")) %>% 
-  mutate(across("exploratory", stringr::str_replace, "Hainich", "Hainich-Dün")) %>% 
-  mutate(across("exploratory", stringr::str_replace, "Schorfheide", "Schorfheide-Chorin")) 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Alb", "South-West")) %>% 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Hainich", "Central")) %>% 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Schorfheide", "North-East")) 
 
-sampledata_bacteria$exploratory <- factor(sampledata_bacteria$exploratory, 
-                                       levels = c("Swabian Alb", "Hainich-Dün", "Schorfheide-Chorin"))  
+sampledata_bacteria$exploratory <- base::factor(sampledata_bacteria$exploratory, 
+                                       levels = c("South-West", "Central", "North-East"))  
 
-sample_data(phy_bac_ord_top25_plot) <- sample_data(sampledata_bacteria)
+phyloseq::sample_data(phy_bac_ord_top25_plot) <- phyloseq::sample_data(sampledata_bacteria)
 
 
 # Custom plotting to make a nice stacked barplot. 
 bac_ord_plots <- phy_bac_ord_top25_plot %>%
   microbiome::plot_composition( group_by =  'exploratory', otu.sort = taxa_names_bac_ord) +
-  scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
-  guides(fill = guide_legend(title.position = 'top')) +
-  theme(panel.grid.major.x = element_blank(), 
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_blank(),
-        axis.ticks = element_line(colour = 'black', linewidth = 0.25),
-        axis.text.x =  element_blank(),
-        axis.text.y =  element_text(colour = "black"),
-        axis.title = element_text(colour = "black"),
+  ggplot2::scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
+  ggplot2::guides(fill = ggplot2::guide_legend(title.position = 'top')) +
+  ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(), 
+        panel.grid.major.y = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        panel.background = ggplot2::element_blank(),
+        axis.line = ggplot2::element_blank(),
+        axis.ticks = ggplot2::element_line(colour = 'black', linewidth = 0.25),
+        axis.text.x =  ggplot2::element_blank(),
+        axis.text.y =  ggplot2::element_text(colour = "black"),
+        axis.title = ggplot2::element_text(colour = "black"),
         legend.position = 'bottom', 
-        plot.title = element_text(vjust = -4, hjust = 0.03), 
-        legend.text = element_text(colour = 'black', size = 7),
-        legend.title =  element_text(size = 7),
-        legend.key.size = unit(2.5, 'mm'),
-        axis.ticks.length.x = unit(-0.2, "cm"), 
-        legend.box.spacing = unit(-4, 'mm'),
-        legend.background = element_rect(fill = 'transparent'),
-        text = element_text(colour = 'black', size = 7)) + 
-  xlab('Sample') +
-  ylab('Relative abundance')  +
-  scale_y_continuous(label = scales::percent)  + 
-  labs( subtitle = 'Bacteria') 
+        plot.title = ggplot2::element_text(vjust = -4, hjust = 0.03), 
+        legend.text = ggplot2::element_text(colour = 'black', size = 7),
+        legend.title =  ggplot2::element_text(size = 7),
+        legend.key.size = ggplot2::unit(2.5, 'mm'),
+        axis.ticks.length.x = ggplot2::unit(-0.2, "cm"), 
+        legend.box.spacing = ggplot2::unit(-4, 'mm'),
+        legend.background = ggplot2::element_rect(fill = 'transparent'),
+        text = ggplot2::element_text(colour = 'black', size = 7)) + 
+  ggplot2::xlab('Sample') +
+  ggplot2::ylab('Relative abundance')  +
+  ggplot2::scale_y_continuous(label = scales::percent)  + 
+  ggplot2::labs( subtitle = 'Bacteria') 
 
 bac_ord_plots
 
@@ -2072,51 +2235,51 @@ phy_fun_ord_top25_plot <-  phy_fun_ord_top25_named %>%
   microbiome::transform(transform = "compositional") 
 
 # Extract the names of the Orders.
-taxa_names(phy_fun_ord_top25_plot) <- tax_table(phy_fun_ord_top25_plot)[, 4]
+phyloseq::taxa_names(phy_fun_ord_top25_plot) <- phyloseq::tax_table(phy_fun_ord_top25_plot)[, 4]
 
 # Sort the taxa names alphabetically. 
-taxa_names_fun_ord <- sort(taxa_names(phy_fun_ord_top25_plot))
+taxa_names_fun_ord <- base::sort(phyloseq::taxa_names(phy_fun_ord_top25_plot))
 
 # To get our desired plotting order and group names we need to change 
 # the exploratory names and order them as factors.
-sampledata_fungi <- data.frame(sample_data(phy_fun_ord_top25_plot))
+sampledata_fungi <- base::data.frame(phyloseq::sample_data(phy_fun_ord_top25_plot))
 sampledata_fungi <- sampledata_fungi %>% 
-  mutate(across("exploratory", stringr::str_replace, "Alb", "Swabian Alb")) %>% 
-  mutate(across("exploratory", stringr::str_replace, "Hainich", "Hainich-Dün")) %>% 
-  mutate(across("exploratory", stringr::str_replace, "Schorfheide", "Schorfheide-Chorin")) 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Alb", "South-West")) %>% 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Hainich", "Central")) %>% 
+  dplyr::mutate(dplyr::across("exploratory", stringr::str_replace, "Schorfheide", "North-East")) 
 
-sampledata_fungi$exploratory <- factor(sampledata_fungi$exploratory, 
-                                       levels = c("Swabian Alb", "Hainich-Dün", "Schorfheide-Chorin"))  
+sampledata_fungi$exploratory <- base::factor(sampledata_fungi$exploratory, 
+                                       levels = c("South-West", "Central", "North-East"))  
 
-sample_data(phy_fun_ord_top25_plot) <- sample_data(sampledata_fungi)
+phyloseq::sample_data(phy_fun_ord_top25_plot) <- phyloseq::sample_data(sampledata_fungi)
 
 # Custom plotting to make a nice stacked barplot. 
 fun_ord_plots <- phy_fun_ord_top25_plot %>%
   microbiome::plot_composition(group_by =  'exploratory', otu.sort = taxa_names_fun_ord) +
-  scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
-  guides(fill = guide_legend(title.position = 'top')) +
-  theme(panel.grid.major.x = element_blank(), 
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_blank(),
-        axis.ticks = element_line(colour = 'black', linewidth = 0.25),
-        axis.text.x =  element_blank(),
-        axis.text.y =  element_text(colour = "black"),
-        axis.title = element_text(colour = "black"),
+  ggplot2::scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
+  ggplot2::guides(fill = ggplot2::guide_legend(title.position = 'top')) +
+  ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(), 
+        panel.grid.major.y = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        panel.background = ggplot2::element_blank(),
+        axis.line = ggplot2::element_blank(),
+        axis.ticks = ggplot2::element_line(colour = 'black', linewidth = 0.25),
+        axis.text.x =  ggplot2::element_blank(),
+        axis.text.y =  ggplot2::element_text(colour = "black"),
+        axis.title = ggplot2::element_text(colour = "black"),
         legend.position = 'bottom', 
-        plot.title = element_text(vjust = -4, hjust = 0.03), 
-        legend.text = element_text(colour = 'black', size = 7),
-        legend.title =  element_text(size = 7),
-        legend.key.size = unit(2.5, 'mm'),
-        axis.ticks.length.x = unit(-0.2, "cm"), 
-        legend.box.spacing = unit(-4, 'mm'),
-        legend.background = element_rect(fill = 'transparent'),
-        text = element_text(colour = 'black', size = 7)) + 
-  xlab('Sample') +
-  ylab('Relative abundance')  +
-  scale_y_continuous(label = scales::percent)  + 
-  labs( subtitle = 'Fungi')
+        plot.title = ggplot2::element_text(vjust = -4, hjust = 0.03), 
+        legend.text = ggplot2::element_text(colour = 'black', size = 7),
+        legend.title =  ggplot2::element_text(size = 7),
+        legend.key.size = ggplot2::unit(2.5, 'mm'),
+        axis.ticks.length.x = ggplot2::unit(-0.2, "cm"), 
+        legend.box.spacing = ggplot2::unit(-4, 'mm'),
+        legend.background = ggplot2::element_rect(fill = 'transparent'),
+        text = ggplot2::element_text(colour = 'black', size = 7)) + 
+  ggplot2::xlab('Sample') +
+  ggplot2::ylab('Relative abundance')  +
+  ggplot2::scale_y_continuous(label = scales::percent)  + 
+  ggplot2::labs( subtitle = 'Fungi')
 fun_ord_plots
 
 
@@ -2126,10 +2289,10 @@ finished_barplots <- ggpubr::ggarrange(alg_ord_plots, fun_ord_plots, bac_ord_plo
                                        nrow = 3, ncol = 1)
 finished_barplots
 
-ggplot2::ggsave("finished_barplots.pdf", plot = finished_barplots, device = cairo_pdf,
-       width = 175, height = 250, units = "mm")
+ggplot2::ggsave(here("Figures", "finished_barplots.eps"), plot = finished_barplots, device = cairo_ps,
+       width = 175, height = 250, units = "mm", dpi = 600, bg = "white")
 
-ggplot2::ggsave("finished_barplots.png", plot = finished_barplots, device = png,
+ggplot2::ggsave(here("Figures", "finished_barplots.png"), plot = finished_barplots, device = png,
                 width = 175, height = 250, units = "mm")
 
 ###
@@ -2137,9 +2300,9 @@ ggplot2::ggsave("finished_barplots.png", plot = finished_barplots, device = png,
 ###
 
 # Import the results of the Alpha diversity variation partioning
-alg_variance_lm <- readRDS(here::here("alg_variance_lm.rds"))
-fun_variance_lm <- readRDS(here::here("fun_variance_lm.rds"))
-bac_variance_lm <- readRDS(here::here("bac_variance_lm.rds"))
+alg_variance_lm <- readRDS(here::here("Data", "alg_variance_lm.rds"))
+fun_variance_lm <- readRDS(here::here("Data", "fun_variance_lm.rds"))
+bac_variance_lm <- readRDS(here::here("Data", "bac_variance_lm.rds"))
 
 # Combine alpha into one dataframe 
 
@@ -2203,47 +2366,9 @@ variance_barplot <- ggpubr::ggbarplot(variance_full, x = "q_lev", y = "variance"
                  strip.background = element_rect(color = "grey")) 
 variance_barplot
 
-ggplot2::ggsave("variance_barplot.pdf", plot = variance_barplot, device = cairo_pdf,
-       width = 175, height = 87.5, units = "mm")
+ggplot2::ggsave(here("Figures", "variance_barplot.eps"), plot = variance_barplot, device = cairo_ps,
+       width = 175, height = 87.5, units = "mm", dpi = 600, bg = "white")
 
-ggplot2::ggsave("variance_barplot.png", plot = variance_barplot, device = png,
+ggplot2::ggsave(here("Figures", "variance_barplot.png"), plot = variance_barplot, device = png,
                 width = 175, height = 87.5, units = "mm")
-
-# Miscallenous 
-
-phybarkalb_alg <- subset_samples(phy_algae_bark, exploratory == "Alb")
-phybarkalb_alg <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarkalb_alg) != 0, phybarkalb_alg)
-phybarkalb_alg
-
-phybarkhai_alg <- subset_samples(phy_algae_bark, exploratory =="Hainich")
-phybarkhai_alg <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarkhai_alg) != 0, phybarkhai_alg)
-phybarkhai_alg
-
-phybarksch_alg <- subset_samples(phy_algae_bark, exploratory == "Schorfheide")
-phybarksch_alg <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarksch_alg) != 0, phybarksch_alg)
-phybarksch_alg
-
-phybarkalb_fun <- subset_samples(phy_fungi_bark, exploratory == "Alb")
-phybarkalb_fun <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarkalb_fun) != 0, phybarkalb_fun)
-phybarkalb_fun
-
-phybarkhai_fun <- subset_samples(phy_fungi_bark, exploratory == "Hainich")
-phybarkhai_fun <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarkhai_fun) != 0, phybarkhai_fun)
-phybarkhai_fun
-
-phybarksch_fun <- subset_samples(phy_fungi_bark, exploratory == "Schorfheide")
-phybarksch_fun <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarksch_fun) != 0, phybarksch_fun)
-phybarksch_fun
-
-phybarkalb_bac <- subset_samples(phy_bacteria_bark, exploratory == "Alb")
-phybarkalb_bac <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarkalb_bac) != 0, phybarkalb_bac)
-phybarkalb_bac
-
-phybarkhai_bac <- subset_samples(phy_bacteria_bark, exploratory == "Hainich")
-phybarkhai_bac <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarkhai_bac) != 0, phybarkhai_bac)
-phybarkhai_bac
-
-phybarksch_bac <- subset_samples(phy_bacteria_bark, exploratory == "Schorfheide")
-phybarksch_bac <- phyloseq::prune_taxa(phyloseq::taxa_sums(phybarksch_bac) != 0, phybarksch_bac)
-phybarksch_bac
 
