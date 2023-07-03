@@ -67,7 +67,7 @@ algae_asv_IDs <- dplyr::left_join(algae_rep_seqs, algae_asv, by = 'sequence_alga
 algae_asv_IDs <- algae_asv_IDs %>% 
   dplyr::rename_with(~paste0("Sample_", .), -c(1:2))
 
-# Remove the dot from PCN and MPC. 
+# Remove the dot from PCR negative controls (PCN) and multiplex controls (MPC). 
 base::colnames(algae_asv_IDs) <- sub("[.]", "_", x = base::colnames(algae_asv_IDs))
 
 # set ASV ID as the rownames.
@@ -133,16 +133,6 @@ ASV_table_algae_cur <- lulu::lulu(ASV_table_algae, algae_matchlist)
 
 ASV_table_algae_cur$curated_count
 ASV_table_algae_cur$discarded_count
-
-# Save a FASTA of the curated ASVs to import into Seed2 for taxonomic assignment. To ease computational 
-# load and the number of NCBI enquiries we only do this now after the curation with LULU. 
-# Make a dataframe from the LULU results.
-ASV_curated <- base::data.frame(ASV_table_algae_cur$curated_table) 
-ASV_curated_names <- base::rownames(ASV_curated)
-
-# Combine it with the rep seqs to obtain only the sequences of the curated ASVs.
-curated_rep_seqs <- dplyr::filter(algae_rep_seqs, seq_name_algae %in% ASV_curated_names)
-writeFasta(curated_rep_seqs, "curated_ASVs_algae.fa")
 
 ##---------
 ##  Fungi  

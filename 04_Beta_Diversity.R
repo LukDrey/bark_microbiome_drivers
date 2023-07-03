@@ -38,7 +38,7 @@ cqn_q1 <- function(beta, N){1-log(beta)/log(N)}
 ##                          Section 2                          ##
 ##                        Data Loading                         ##
 #################################################################
-
+# Read in the phyloseq files from the Data Cleaning section.
 phy_algae_bark <- base::readRDS(here("Data", "phy_algae_bark.rds"))
 
 phy_bacteria_bark <- base::readRDS(here("Data", "phy_bacteria_bark.rds"))
@@ -457,7 +457,7 @@ data_gdm_q2_fun <- data_gdm_q2 %>%
 ##---------------------------------------------------------------
 ##                              GDMs                            -
 ##---------------------------------------------------------------
-
+# Here we carry out the Generalized Dissimilarity Modelling. 
 # q = 0
 gdm_alg_q0 <- gdm::gdm(data_gdm_q0_alg, geo = T)
 base::summary(gdm_alg_q0)
@@ -536,7 +536,8 @@ p_vals_gdm <- data.frame(rownames(p_gdm) ,round(p_gdm$`All predictors`, 3), roun
 ##---------------------------------------------------------------
 ##                    Variance partitioning                     -
 ##---------------------------------------------------------------
-
+# Create a vector of the variables belonging to abiotic factors. 
+# Biotic factors will be different for each organism group so we set them as we go.
 varSet <- vector("list", 2)
 names(varSet) <- c("biotic", "abiotic")
 varSet$abiotic <- c("rH_200", "Ta_200", "stand_density_basal_area",
@@ -552,6 +553,7 @@ names(varSet_alg_q0) <- c("biotic", "abiotic")
 varSet_alg_q0$biotic <- c("fun_q0_cqn", "bac_q0_cqn")
 varSet_alg_q0$abiotic <- varSet$abiotic
 
+# Calculate the variation within the GDM.
 alg_var_q0 <- gdm::gdm.partition.deviance(data_gdm_q0_alg, varSet_alg_q0, partSpace = T)
 
 intersections <- alg_var_q0$VARIABLE_SET[8:15]
@@ -682,7 +684,8 @@ bac_variance <- rbind(bac_var_q0, bac_var_q1, bac_var_q2) %>%
 ##---------------------------------------------------------------
 ##   Linear Models of beta diversity to get effect direction    -
 ##---------------------------------------------------------------
-
+# We want to get an effect direction for the beta diversity as well so we can say 
+# if it increases/decreases with variation in a predictor variable.
 # First we need to calculate the absolute differences in our explanatory variables.
 
 data_lm_beta_q0 <- data_gdm_q0 %>% 
@@ -900,7 +903,7 @@ algae_col <- "#49BEAA"
 bacteria_col <- "#e2ca20"
 fungi_col <- "#ea594e"
 
-# Extract the splines
+# Extract the splines from the gdm since it is not (necessarily) a linear function.
 gdm_alg_q0_splineDat <- gdm::isplineExtract(gdm_alg_q0)
 gdm_bac_q0_splineDat <- gdm::isplineExtract(gdm_bac_q0)
 gdm_fun_q0_splineDat <- gdm::isplineExtract(gdm_fun_q0)
@@ -1928,11 +1931,10 @@ bacteria_dominant_effect <- ggplot() +
   scale_y_continuous(labels = function(x) format(x, nsmall = 2))
 bacteria_dominant_effect
 
-#####
-# Plotting
-#####
-blank <- ggplot() + theme_bw() + theme(panel.border = element_blank())
-
+############
+# Plotting of the main text figures
+############
+# Grep a legend to append to the figure of the combined effect plots.
 beta_legend <- ggpubr::get_legend(ggplot() +
   geom_line(data = gdm_alg_q0_plot_bacteria, aes(x = x_bacteria, y = y_bacteria, linetype = "solid"),
             color = "black", linewidth = 0.7)  +
@@ -1953,28 +1955,31 @@ beta_legend <- ggpubr::get_legend(ggplot() +
                         labels = c('q = 0 (all species)', 'q = 1 (typical)', 'q = 2 (dominant)'))+
   scale_y_continuous(labels = function(x) format(x, nsmall = 2)))
 
-
+# Put a title for the biotic effects side. 
 beta_effects_algae1 <- ggpubr::ggarrange(algae_bacteria_effect, 
                                         algae_fungi_effect,
                                         nrow = 1, ncol = 2)  %>% 
   ggpubr::annotate_figure(top =  ggpubr::text_grob("Biotic Effects", size = 7, family = "sans", face = "bold"))
 
+# Put a title for the abiotic effects side. 
 beta_effects_algae2 <- ggpubr::ggarrange(algae_canopy_effect,
                                          algae_temperature_effect,
                                          nrow = 1, ncol = 2) %>% 
   ggpubr::annotate_figure(top = ggpubr::text_grob("Abiotic Effects", size = 7, family = "sans", face = "bold"))
 
+# Combine the algae abiotic and biotic sides.
 beta_effects_algae3 <- ggpubr::ggarrange(beta_effects_algae1,
                                          beta_effects_algae2,
                                       nrow = 1, ncol = 2) 
-
+# Fungal Plots.
 beta_effects_fungi <- ggpubr::ggarrange(fungi_bacteria_effect,
                                         fungi_algae_effect, 
                                         fungi_canopy_effect, 
                                         fungi_temperature_effect,
                                         nrow = 1, ncol = 4)  %>% 
   ggpubr::annotate_figure(top = ggpubr::text_grob("",  color = fungi_col, face = "bold", size = 7))
-                                    
+  
+# Bacterial plots.                                  
 beta_effects_bacteria <- ggpubr::ggarrange(bacteria_fungi_effect, 
                                            bacteria_algae_effect, 
                                            bacteria_canopy_effect,
@@ -1982,6 +1987,7 @@ beta_effects_bacteria <- ggpubr::ggarrange(bacteria_fungi_effect,
                                            nrow = 1, ncol = 4)  %>% 
   ggpubr::annotate_figure(top = ggpubr::text_grob("",  color = bacteria_col, face = "bold", size = 7))
 
+# Combine the plots into one figure for the paper
 effects_beta <- ggpubr::ggarrange(beta_effects_algae3, beta_effects_fungi, beta_effects_bacteria,
                                   nrow = 3, ncol = 1, legend.grob = beta_legend, legend = "bottom",
                                   heights = c(1, 0.925, 0.925)) 
@@ -1989,6 +1995,7 @@ effects_beta <- ggpubr::ggarrange(beta_effects_algae3, beta_effects_fungi, beta_
 
 effects_beta
 
+# Save the plots as EPS and PNG files.
 ggplot2::ggsave(here("Figures", "effects_beta.eps"), plot = effects_beta, device = cairo_ps,
        width = 175, height = 150, units = "mm", dpi = 600, bg = "white")
 
@@ -1999,7 +2006,7 @@ ggplot2::ggsave(here("Figures", "effects_beta.png"), plot = effects_beta, device
 #####
 # Plotting supplementary beta effect figures
 #####
-
+# Same procedure as above.
 ###
 #Algae
 ###
@@ -2289,6 +2296,7 @@ finished_barplots <- ggpubr::ggarrange(alg_ord_plots, fun_ord_plots, bac_ord_plo
                                        nrow = 3, ncol = 1)
 finished_barplots
 
+# Save the plots as EPS and PNG files.
 ggplot2::ggsave(here("Figures", "finished_barplots.eps"), plot = finished_barplots, device = cairo_ps,
        width = 175, height = 250, units = "mm", dpi = 600, bg = "white")
 
@@ -2304,7 +2312,7 @@ alg_variance_lm <- readRDS(here::here("Data", "alg_variance_lm.rds"))
 fun_variance_lm <- readRDS(here::here("Data", "fun_variance_lm.rds"))
 bac_variance_lm <- readRDS(here::here("Data", "bac_variance_lm.rds"))
 
-# Combine alpha into one dataframe 
+# Combine alpha into one dataframe. 
 
 alg_variance_lm <- alg_variance_lm  %>% 
   cbind(div_lev = rep("\u03B1-diversity", nrow(alg_variance_lm))) %>% 
@@ -2322,7 +2330,7 @@ variance_lm <- rbind(alg_variance_lm, fun_variance_lm, bac_variance_lm) %>%
   dplyr::rename(variance = Proportion) %>% 
   dplyr::mutate(variance = (variance * 100))
 
-# Combine beta into one dataframe 
+# Combine beta into one dataframe. 
 
 alg_variance_gdm <- alg_variance  %>% 
   cbind(div_lev = rep("\u03B2-diversity", nrow(alg_variance))) %>% 
@@ -2343,7 +2351,7 @@ variance_beta <- rbind(alg_variance_gdm, fun_variance_gdm, bac_variance_gdm) %>%
 variance_full <- rbind(variance_lm, variance_beta)  %>% 
   mutate(organism = factor(organism, levels = c("Algae", "Fungi", "Bacteria")))
   
-# Create faceted multipanel plot with ggpubr and ggplot2
+# Create faceted multipanel plot with ggpubr and ggplot2.
 
 div_labels <- c("\u03B1-diversity", "\u03B2-diversity")
 
@@ -2366,6 +2374,7 @@ variance_barplot <- ggpubr::ggbarplot(variance_full, x = "q_lev", y = "variance"
                  strip.background = element_rect(color = "grey")) 
 variance_barplot
 
+# Save the plots as EPS and PNG files.
 ggplot2::ggsave(here("Figures", "variance_barplot.eps"), plot = variance_barplot, device = cairo_ps,
        width = 175, height = 87.5, units = "mm", dpi = 600, bg = "white")
 

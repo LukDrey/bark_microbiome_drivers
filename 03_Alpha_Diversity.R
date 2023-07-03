@@ -24,7 +24,7 @@ library(ggeffects); packageVersion("ggeffects")
 ##                          Section 2                          ##
 ##                        Data Loading                         ##
 #################################################################
-
+#Read in the phyloseq files from the data cleaning section. 
 phy_algae_bark <- base::readRDS(here("Data", "phy_algae_bark.rds"))
 
 phy_bacteria_bark <- base::readRDS(here("Data", "phy_bacteria_bark.rds"))
@@ -103,7 +103,9 @@ metadata_alpha_scaled <- metadata_alpha %>%
 ############
 # Linear Models of alpha diversity
 ###########
-
+# Create linear models including all of the previously chosen variables. 
+# We do not employ any model selection to make effect sizes etc comparable between organism groups
+# and levels of alpha diversity. 
 #ALGAE
 lm_q0_alg_second <- stats::lm(alg_q0 ~ exploratory + 
                          rH_200 + 
@@ -278,6 +280,7 @@ base::plot(stats::residuals(lm_q2_fun_second), stats::fitted(lm_q2_fun_second))
 stats::qqnorm(stats::residuals(lm_q2_fun_second))
 stats::qqline(stats::residuals(lm_q2_fun_second))
 
+# Calculate Benjamini Hochberg corrected p-values of all of the linear models. 
 p_step2 <- (summary(lm_q0_alg_second)$coefficients[-1,4])
 p_step2 <- c(p_step2, (summary(lm_q1_alg_second)$coefficients[-1,4]))
 p_step2 <- c(p_step2, (summary(lm_q2_alg_second)$coefficients[-1,4]))
@@ -297,7 +300,8 @@ p_vals_step2 <- data.frame(names(p_step2) ,round(p_step2, 3), round(p_adj_step2,
 ##---------------------------------------------------------------
 ##                   Variance Partitioning                      -
 ##---------------------------------------------------------------
-
+# For the ModEVA function we need to create models for all of the different combinations of 
+# abiotic, biotic and geographic variables. 
 # A = biotic; B = abiotic, C = exploratory, AB = biotic + abiotic
 # AC = biotic + exploratory, BC = abiotic + exploratory 
 
@@ -938,12 +942,14 @@ bac_variance_lm <- rbind(bac_var_lm_q0, bac_var_lm_q1, bac_var_lm_q2) %>%
                                                 "geographic (g)", "abiotic (a)", "biotic (b)")))  %>% 
   mutate(q_lev = factor(q_lev, levels = c("q2", "q1", "q0")))
 
+# Save the tables because we will create a combined figure with the variance partitioning 
+# of beta diversity. 
 base::saveRDS(bac_variance_lm, here("Data", "bac_variance_lm.rds"))
 base::saveRDS(alg_variance_lm, here("Data", "alg_variance_lm.rds"))
 base::saveRDS(fun_variance_lm, here("Data", "fun_variance_lm.rds"))
 
 #####
-# Effects plots
+# Effect plots of alpha diversity
 #####
 
 # Colors
@@ -1692,7 +1698,7 @@ fungi_region_effect
 ############
 # Plotting of the main text figures
 ############
-
+# Grep a legend to append to the figure of the combined effect plots.
 alpha_legend <- ggpubr::get_legend(ggplot() +
   geom_line(data = bac_q0_pred_fun,mapping = aes(x = x, y = predicted, linetype = "solid"),
             color = "black", linewidth = 0.7) + 
@@ -1716,31 +1722,38 @@ alpha_legend <- ggpubr::get_legend(ggplot() +
        x= "Fungal \u03B1-diversity")  +
   scale_y_continuous(labels = function(x) format(x, nsmall = 1)))
 
+# Put a title for the biotic effects side. 
 effects_algae1 <- ggpubr::ggarrange(algae_bacterial_effect, algae_fungal_effect,
                                     nrow = 1, ncol = 2) %>% 
   ggpubr::annotate_figure(top = ggpubr::text_grob("Biotic effects", size = 7, family = "sans", face = "bold"))
 
+# Put a title for the abiotic effects side. 
 effects_algae2 <- ggpubr::ggarrange(algae_canopy_effect, algae_humidity_effect, 
                                    nrow = 1, ncol = 2) %>% 
   ggpubr::annotate_figure(top = ggpubr::text_grob("Abiotic effects", size = 7, family = "sans", face = "bold"))
 
+# Combine the algae abiotic and biotic sides. 
 effects_algae3 <- ggpubr::ggarrange(effects_algae1,
                                     effects_algae2,
                                     nrow = 1, ncol = 2) 
 
+# Fungal plots.
 effects_fungi <- ggpubr::ggarrange(fungi_bacterial_effect, fungi_algal_effect, fungi_canopy_effect, fungi_humidity_effect, 
                                    nrow = 1, ncol = 4) %>% 
   ggpubr::annotate_figure(top = ggpubr::text_grob("",  color = fungi_col, face = "bold", size = 7)) 
 
+# Bacterial plots.
 effects_bacteria <- ggpubr::ggarrange(bacteria_fungal_effect, bacteria_algal_effect, bacteria_canopy_effect, bacteria_humidity_effect,
                                       nrow = 1, ncol = 4) %>% 
   ggpubr::annotate_figure(top = ggpubr::text_grob("",  color = bacteria_col, face = "bold", size = 7))
 
+# Combine them in one big plot for the paper.
 effects_alpha <- ggpubr::ggarrange(effects_algae3, effects_fungi, effects_bacteria,
                                    nrow = 3, common.legend = T, legend = "bottom",
                                    legend.grob = alpha_legend)
 effects_alpha
 
+# Save the plots as EPS and PNG. 
 ggplot2::ggsave(here("Figures", "effects_alpha.eps"), plot = effects_alpha, device = cairo_ps,
        width = 175, height = 150, units = "mm", dpi = 600, bg = "white")
 
@@ -1751,6 +1764,7 @@ ggplot2::ggsave(here("Figures", "effects_alpha.png"), plot = effects_alpha, devi
 #####
 # Plotting supplementary alpha effect figures
 #####
+# Same procedure as above. 
 
 ###
 #Algae

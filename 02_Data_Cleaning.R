@@ -31,7 +31,7 @@ own_metadata <- utils::read.csv(here::here("Data","sample_data_2.csv"), header =
 own_metadata <- own_metadata %>% tidyr::separate(sample, c(NA, 'Plot_ID', NA) , sep = '_', remove = F)
 
 # Insert EW after the first character of the string in a given cell.
-# To mirror the Notation used by the Biodiversity Exploratories. 
+# To mirror the notation used by the Biodiversity Exploratories. 
 own_metadata$Plot_ID <- base::gsub("^(.{1})(.*)$",
                              "\\1EW\\2",
                              own_metadata$Plot_ID)
@@ -169,14 +169,14 @@ metadata_full <- metadata_full[!(metadata_full$Plot_ID == "HEW3" |
                                    metadata_full$Plot_ID == "HEW12"),]
 
 # Few plots have a dominant tree species that is not beech, pine or fir. 
-# This takes away too much statistical power, thus we remove them. 
+# This takes away too much statistical power, thus we only keep beech, pine and fir dominated plots. 
 
 metadata_full_tree_filtered <- metadata_full %>% 
   dplyr::filter(dominant_tree == "Pinus_sylvestris" | 
                   dominant_tree == "Picea_abies" | 
                   dominant_tree == "Fagus_sylvatica")
 
-# We need to append the coordinates as well for the GDMs later on. 
+# We need to append the coordinates as well for the Generalized Dissimilarity Models later on. 
 
 metadata_full_tree_filtered <- metadata_full_tree_filtered %>% 
   tibble::rownames_to_column(var = "Sample_ID") %>% 
@@ -195,6 +195,7 @@ metadata_full_tree_filtered$Sample_ID <- NULL
 ##---------
 ##  Algae  
 ##---------
+# Read in the curated ASV table that we created with LULU. 
 ASV_table_algae_cur <- base::readRDS(here("Data", "ASV_table_algae_cur.rds"))
 
 # Keep only samples that do represent real tree swabs. Cut Controls.
@@ -204,6 +205,7 @@ asv_algae <- ASV_table_algae_cur$curated_table %>%
 ##---------
 ##  Bacteria  
 ##---------
+# Read in the curated ASV table that we created with LULU.
 ASV_table_bacteria_cur <- base::readRDS(here("Data", "ASV_table_bacteria_cur.rds"))
 
 # Keep only samples that do represent real tree swabs. Cut Controls.
@@ -213,6 +215,7 @@ asv_bacteria <- ASV_table_bacteria_cur$curated_table %>%
 ##---------
 ##  Fungi  
 ##---------
+# Read in the curated ASV table that we created with LULU.
 ASV_table_fungi_cur <- base::readRDS(here("Data", "ASV_table_fungi_cur.rds"))
 
 # Keep only samples that do represent real tree swabs. Cut Controls. 
@@ -226,9 +229,10 @@ asv_fungi <- ASV_table_fungi_cur$curated_table %>%
 ##---------
 ##  Algae  
 ##---------
-
+# Read in the taxonomy tables we created BLASTn.
 tax_algae <- base::readRDS(here::here("Data", 'tax_table_algae.rds'))
 
+# Convert to data frame.
 tax_algae <- base::as.data.frame(tax_algae)
 
 tax_algae$taxaID <- NULL
@@ -452,7 +456,7 @@ phy_fungi <- phyloseq::prune_taxa(phyloseq::taxa_sums(phy_fungi) != 0, phy_fungi
 ##---------
 ##  Algae  
 ##---------
-
+# Split off the reads and ASVs originating from soil samples that were sequenced jointly.
 phy_algae_bark <- phyloseq::subset_samples(phy_algae, substrate == "bark") %>% 
   phyloseq::prune_taxa(phyloseq::taxa_sums(.) > 0,.)
 
@@ -462,7 +466,7 @@ phy_algae_soil <- phyloseq::subset_samples(phy_algae, substrate == "soil") %>%
 ##---------
 ##  Bacteria  
 ##---------
-
+# Split off the reads and ASVs originating from soil samples that were sequenced jointly.
 phy_bacteria_bark <- phyloseq::subset_samples(phy_bacteria, substrate == "bark") %>% 
   phyloseq::prune_taxa(phyloseq::taxa_sums(.) > 0,.)
 
@@ -473,7 +477,7 @@ phy_bacteria_soil <- phyloseq::subset_samples(phy_bacteria, substrate == "soil")
 ##---------
 ##  Fungi  
 ##---------
-
+# Split off the reads and ASVs originating from soil samples that were sequenced jointly.
 phy_fungi_bark <- phyloseq::subset_samples(phy_fungi, substrate == "bark")  %>% 
   phyloseq::prune_taxa(phyloseq::taxa_sums(.) > 0,.)
 
@@ -517,8 +521,8 @@ metadata_pairs_2 <- metadata_pairs %>%
 
 # Correlation between categorical and continous variables is not straightforward.
 # We are interested in the individual influence of climate and stand variables, but they are 
-# highly related to the tree type. Excactly how much we want to find out so we can justify excluding 
-# tree type from the analysis. 
+# highly related to the tree type. Excactly how much we want to find out. In the end we see
+# that indeed they are highly correlated and we exclude tree type from the analysis. 
 
 manova <- stats::manova(cbind(stand_density_basal_area,
                               DBH_avg, d_gini, 
@@ -538,6 +542,7 @@ metadata_pairs_2 %>% dplyr::select("dominant_tree", "rH_200", "Ta_200", "stand_d
 ##                         Data Saving                         ##
 #################################################################
 
+# Save the Phyloseq objects so we can later load them for the diversity analysis.
 base::saveRDS(phy_algae_bark, here("Data", "phy_algae_bark.rds"))
 
 base::saveRDS(phy_bacteria_bark, here("Data", "phy_bacteria_bark.rds"))
@@ -570,64 +575,3 @@ bacteria_species_list <- metagMisc::phyloseq_to_df(phy_bacteria_bark, addtax = T
 write.csv(algae_species_list, "algae_species_list.csv", row.names = F)
 write.csv(fungi_species_list, "fungi_species_list.csv", row.names = F)
 write.csv(bacteria_species_list, "bacteria_species_list.csv", row.names = F)
-
-###
-# Fasta Files for Genbank
-###
-
-# Filter the original sequences to contain only sequences from the curation and after removing non-algae.
-filtered_algae_reps_bark <- algae_rep_seqs %>% 
-  dplyr::filter(seq_name_algae %in% taxa_names(phy_algae_bark)) %>% 
-  dplyr::rename(name = seq_name_algae,
-                seq = sequence_algae)
-
-filtered_algae_reps_soil <- algae_rep_seqs %>% 
-  dplyr::filter(seq_name_algae %in% taxa_names(phy_algae_soil)) %>% 
-  dplyr::rename(name = seq_name_algae,
-                seq = sequence_algae)
-
-# Filter the original sequences to contain only sequences from the curation and after removing non-fungi.
-filtered_fungi_reps_bark <- fungi_rep_seqs %>% 
-  dplyr::filter(seq_name_fungi %in% taxa_names(phy_fungi_bark)) %>% 
-  dplyr::rename(name = seq_name_fungi,
-                seq = sequence_fungi)
-
-filtered_fungi_reps_soil <- fungi_rep_seqs %>% 
-  dplyr::filter(seq_name_fungi %in% taxa_names(phy_fungi_soil)) %>% 
-  dplyr::rename(name = seq_name_fungi,
-                seq = sequence_fungi)
-
-# Filter the original sequences to contain only sequences from the curation and after removing non-bacteria.
-filtered_bacteria_reps_bark <- bacteria_rep_seqs %>% 
-  dplyr::filter(seq_name_bacteria %in% taxa_names(phy_bacteria_bark)) %>% 
-  dplyr::rename(name = seq_name_bacteria,
-                seq = sequence_bacteria)
-
-filtered_bacteria_reps_soil <- bacteria_rep_seqs %>% 
-  dplyr::filter(seq_name_bacteria %in% taxa_names(phy_bacteria_soil)) %>% 
-  dplyr::rename(name = seq_name_bacteria,
-                seq = sequence_bacteria)
-
-writeFasta<-function(data, filename){
-  fastaLines = c()
-  for (rowNum in 1:nrow(data)){
-    fastaLines = c(fastaLines, as.character(paste(">", data[rowNum,"name"], sep = "")))
-    fastaLines = c(fastaLines,as.character(data[rowNum,"seq"]))
-  }
-  fileConn<-file(filename)
-  writeLines(fastaLines, fileConn)
-  close(fileConn)
-}
-
-
-writeFasta(filtered_algae_reps_bark, "ASVs_filtered_algae_bark.fa")
-
-writeFasta(filtered_fungi_reps_bark, "ASVs_filtered_fungi_bark.fa")
-
-writeFasta(filtered_bacteria_reps_bark, "ASVs_filtered_bacteria_bark.fa")
-
-writeFasta(filtered_algae_reps_soil, "ASVs_filtered_algae_soil.fa")
-
-writeFasta(filtered_fungi_reps_soil, "ASVs_filtered_fungi_soil.fa")
-
-writeFasta(filtered_bacteria_reps_soil, "ASVs_filtered_bacteria_soil.fa")

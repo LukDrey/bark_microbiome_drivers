@@ -1,13 +1,14 @@
 ########################################################################################
 #         Pipeline for the processing of metabarcoding MiSeq reads                     #
 ########################################################################################
+# Begin
+# This pipeline was conducted on an external linux server.  
+# You can find all necessary information and files needed to replicate 
+# the analysis in the data folder in this repository.
+# Set the filepath to the location of the raw reads. 
+cd /YOUR/FILEPATH/HERE/
 
 #ALGAE
-
-Begin
-# This pipeline was conducted on an external linux server.  
-# Set the filepath to the location of the raw reads. 
-cd /phylodata/ldreyling/BigCampaign/full_data/algae
 
 # Open a screen to allow us to run all organism groups in parallel. 
 screen -S algae
@@ -38,7 +39,7 @@ multiqc FASTQC -o FASTQC --interactive
 ###
 
 # The .txt file consisting of the octamer tags and primers (reffered to as barcodes from here on), 
-# used for the study was previously uploaded to the server.
+# used for the study was previously uploaded to the server. 
 
 # Take each line of the .txt of the barcodes and adds a line containing info on which sample this barcode belongs to. 
 awk '{print">fwd"NR"\n"$0}' ./BARCODES/algae_fwd_barcodes_big.txt > ./BARCODES/algae_barcodes_big.fwd.fasta 
@@ -96,20 +97,20 @@ conda deactivate
 cd ./DEMULTIPLEXED/
 
 # Then we rename the files. 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_1_old_big.txt \
-/phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_1_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R1_1_old_big.txt \
+/YOUR/FILEPATH/HERE/RENAMING/renaming_R1_1_new_big.txt \
 | while read n k; do rename -v $n $k * ; done > ./rename_logR1.1.txt
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_2_old_big.txt \
-/phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_2_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R1_2_old_big.txt \
+/YOUR/FILEPATH/HERE/RENAMING/renaming_R1_2_new_big.txt \
 | while read n k; do rename -v $n $k * ; done > ./rename_logR1.2.txt
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_1_old_big.txt \
- /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_1_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_1_old_big.txt \
+ /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_1_new_big.txt \
 | while read n k; do rename -v $n $k * ; done > ./rename_logR2.1.txt
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_2_old_big.txt \
- /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_2_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_2_old_big.txt \
+ /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_2_new_big.txt \
  | while read n k; do rename -v $n $k * ; done > ./rename_logR2.2.txt
 
 # For use in a later sanity check to see if our merging works, we create a FASTA file of both 
@@ -553,7 +554,8 @@ quit(save = 'yes')
 ###
 
 # For algae currently no database exist that includes sequences and taxonomic information. 
-# So we will do a local blast against NCBI. (You can also do a remote search against NCBI but it will take some time. Just add -remote to the function call below) 
+# So we will do a local blast against NCBI. (You can also do a remote search against NCBI but it will take some time.
+# Just add -remote to the function call below) 
 
 # Create a directory to store the NCBI database in. 
 mkdir NCBI_DB
@@ -629,7 +631,7 @@ saveRDS(full_taxonomy, "tax_table_algae.rds")
 ###
 
 # Set the filepath to the files with the DADA2 processed files.
-cd /phylodata/ldreyling/BigCampaign/full_data/algae
+cd /YOUR/FILEPATH/HERE/
 
 # Open the conda environment containing blast. 
 conda activate blastenv
@@ -658,7 +660,7 @@ Begin
 
 # This pipeline was conducted on an external linux server.  
 # Set the filepath to the location of the raw reads. 
-cd /phylodata/ldreyling/BigCampaign/full_data/bacteria/
+cd /YOUR/FILEPATH/HERE/
 
 # Open a screen to allow us to run all organism groups in parallel. 
 screen -S bacteria
@@ -746,19 +748,19 @@ conda deactivate
 # We need to enter the directory where we stored the demultiplexed files. 
 cd ./DEMULTIPLEXED/
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_1_old_big.txt \
-/phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_1_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R1_1_old_big.txt \
+/YOUR/FILEPATH/HERE/RENAMING/renaming_R1_1_new_big.txt \
  | while read n k; do rename -v $n $k * ; done > ./rename_logR1.1.txt
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_2_old_big.txt \
-/phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_2_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R1_2_old_big.txt \
+/YOUR/FILEPATH/HERE/RENAMING/renaming_R1_2_new_big.txt \
 | while read n k; do rename -v $n $k * ; done > ./rename_logR1.2.txt
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_1_old_big.txt \
- /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_1_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_1_old_big.txt \
+ /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_1_new_big.txt \
 | while read n k; do rename -v $n $k * ; done > ./rename_logR2.1.txt
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_2_old_big.txt \
- /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_2_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_2_old_big.txt \
+ /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_2_new_big.txt \
  | while read n k; do rename -v $n $k * ; done > ./rename_logR2.2.txt
 
 # For use in a later sanity check to see if our merging works, we create a FASTA file of both 
@@ -1346,7 +1348,7 @@ Begin
 screen -S fungi
 
 # Set the filepath to the location of the raw reads. 
-cd /phylodata/ldreyling/BigCampaign/full_data/fungi/
+cd /YOUR/FILEPATH/HERE/
 ###
 # ADAPTER TRIMMING
 ### 
@@ -1430,20 +1432,20 @@ conda deactivate
 cd ./DEMULTIPLEXED/
 
 # Then we rename the files. 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_1_old_big.txt \
-/phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_1_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R1_1_old_big.txt \
+/YOUR/FILEPATH/HERE/RENAMING/renaming_R1_1_new_big.txt \
 | while read n k; do rename -v $n $k * ; done > ./rename_logR1.1.txt
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_2_old_big.txt \
-/phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R1_2_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R1_2_old_big.txt \
+/YOUR/FILEPATH/HERE/RENAMING/renaming_R1_2_new_big.txt \
 | while read n k; do rename -v $n $k * ; done > ./rename_logR1.2.txt
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_1_old_big.txt \
- /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_1_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_1_old_big.txt \
+ /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_1_new_big.txt \
 | while read n k; do rename -v $n $k * ; done > ./rename_logR2.1.txt
 
-paste /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_2_old_big.txt \
- /phylodata/ldreyling/BigCampaign/full_data/RENAMING/renaming_R2_2_new_big.txt \
+paste /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_2_old_big.txt \
+ /YOUR/FILEPATH/HERE/RENAMING/renaming_R2_2_new_big.txt \
  | while read n k; do rename -v $n $k * ; done > ./rename_logR2.2.txt
 
 # For use in a later sanity check to see if our merging works, we create a FASTA file of both 
@@ -1918,15 +1920,3 @@ blastn -db ASVs_fungi.fa \
 conda deactivate
 
 # Move to R on the local machine to run decontam and the LULU curation.
-
-###
-# Functional Assignment with FUNGUILD
-###
-
-# First get the FUNGUILD script. 
-git clone https://github.com/UMNFuN/FUNGuild
-cd FUNGuild/
-
-python Guilds_v1.1.py -otu /phylodata/ldreyling/BigCampaign/full_data/fungi/tax_funguild.tsv -db fungi -m -u 
-
-End
