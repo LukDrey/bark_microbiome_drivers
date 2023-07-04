@@ -6,7 +6,7 @@
 This repository contains the data and pre-processing pipeline, as well as the R script for the analysis accompanying our paper: 
 
 > Dreyling L, Penone C, Schenk N, Schmitt I, Dal Grande F 2023. Biotic interactions outweigh abiotic factors as drivers of bark microbial communities in Central European forests.
-> You can cite the dataset and code with the following doi [![DOI](https://zenodo.org/badge/659820253.svg)](https://zenodo.org/badge/latestdoi/659820253).
+> You can cite the dataset and code with the following [![DOI](https://zenodo.org/badge/659820253.svg)](https://zenodo.org/badge/latestdoi/659820253).
 
 ## Contacts
 
