@@ -13,8 +13,6 @@ library(hillR); packageVersion("hillR")
 #0.5.1
 library(gdm); packageVersion("gdm")
 #1.5.0.7
-library(betapart); packageVersion("betapart")
-#1.5.6
 library(phyloseq); packageVersion("phyloseq")
 #1.40.0
 library(effects); packageVersion("effects")

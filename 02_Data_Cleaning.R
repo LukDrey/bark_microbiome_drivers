@@ -13,8 +13,6 @@ library(stringr); packageVersion("stringr")
 #1.4.0
 library(GGally); packageVersion("GGally")
 #2.1.2
-library(heplots); packageVersion("heplots")
-#1.4.2
 ##################################################################
 ##                          Section 2                           ##
 ##         Data Loading, Data Cleaning and Initialization       ##

@@ -13,10 +13,6 @@ library(tidyverse); packageVersion("tidyverse")
 #1.3.2
 library(phyloseq); packageVersion("phyloseq")
 #1.40.0
-library(ggdist); packageVersion("ggdist")
-#3.1.1
-library(gghalves); packageVersion("gghalves")
-#0.1.3
 library(ggeffects); packageVersion("ggeffects")
 #1.1.2
 
