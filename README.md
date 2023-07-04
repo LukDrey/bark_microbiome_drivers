@@ -67,4 +67,4 @@ If you lack the computing power to process the raw reads, the resulting ASV tabl
   - gdm https://github.com/fitzLab-AL/gdm
   - effects https://cran.r-project.org/web/packages/effects/index.html
   - ggeffects https://strengejacke.github.io/ggeffects/index.html
-  - https://ggobi.github.io/ggally/
+  - GGAlly https://ggobi.github.io/ggally/
