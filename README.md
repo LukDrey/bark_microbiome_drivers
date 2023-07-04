@@ -1,6 +1,6 @@
 # Biotic interactions outweigh abiotic factors as drivers of bark microbial communities in Central European forests 
 
-![Important effects on beta diversity]()
+![Important effects on beta diversity](https://github.com/LukDrey/bark_microbiome_drivers/blob/main/Figure4_effects_beta.png)
 
 This repository contains the data and pre-processing pipeline, as well as the R script for the analysis accompanying our paper: 
 
