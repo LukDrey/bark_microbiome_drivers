@@ -11,10 +11,10 @@ This repository contains the data and pre-processing pipeline, as well as the R 
 **Lukas Dreyling**  
 [E-Mail](mailto:lukas.dreyling@senckenberg.de)  
 
-**Caterina Penone**
+**Caterina Penone**  
 [E-Mail](mailto:caterina.penone@unibe.ch)
 
-**Noëlle Schenk**
+**Noëlle Schenk**  
 [E-Mail](mailto:noelle.schenk@unibe.ch)
 
 **Imke Schmitt**  
