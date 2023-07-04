@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/659820253.svg)](https://zenodo.org/badge/latestdoi/659820253)
 # Biotic interactions outweigh abiotic factors as drivers of bark microbial communities in Central European forests 
 
 ![Important effects on beta diversity](https://github.com/LukDrey/bark_microbiome_drivers/blob/main/Figure4_effects_beta.png)
