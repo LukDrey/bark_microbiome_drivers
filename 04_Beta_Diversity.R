@@ -1994,11 +1994,11 @@ effects_beta <- ggpubr::ggarrange(beta_effects_algae3, beta_effects_fungi, beta_
 effects_beta
 
 # Save the plots as EPS and PNG files.
-ggplot2::ggsave(here("Figures", "effects_beta.eps"), plot = effects_beta, device = cairo_ps,
+ggplot2::ggsave(here::here("Figures", "effects_beta.eps"), plot = effects_beta, device = cairo_ps,
        width = 175, height = 150, units = "mm", dpi = 600, bg = "white")
 
-ggplot2::ggsave(here("Figures", "effects_beta.png"), plot = effects_beta, device = png,
-       width = 175, height = 150, units = "mm")
+ggplot2::ggsave(here::here("Figures", "effects_beta.png"), plot = effects_beta, device = png,
+       width = 175, height = 150, units = "mm", bg = "white")
 
 
 #####
