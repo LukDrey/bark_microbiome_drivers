@@ -1,0 +1,134 @@
+"Sample_ID","exploratory","dominant_tree","relative_humidity","temperature","average_DBH","canopy_openness","gini_coefficient","stand_density","ratio_of_dominant_trees","forest_area","library_size_algae","library_size_fungi","library_size_bacteria"
+"Sample_A1_B","Swabian Alb","Picea abies",74.54,7.61,27.34,9.89,0.16,44.35,0.93,0.5,4150,28504,13002
+"Sample_A10_B","Swabian Alb","Picea abies",78.85,6.81,23.8,14.5,0.19,45.19,0.93,0.67,13330,14282,9981
+"Sample_A11_B","Swabian Alb","Picea abies",76.11,7.39,37.68,10.43,0.13,51.93,0.98,0.58,20971,22004,9586
+"Sample_A12_B","Swabian Alb","Picea abies",79.29,6.94,39.6,17.32,0.15,42.37,0.98,0.49,17644,17308,8406
+"Sample_A13_B","Swabian Alb","Picea abies",78.31,7.27,39.71,11.63,0.18,52.82,0.87,0.65,24099,18434,16003
+"Sample_A14_B","Swabian Alb","Picea abies",80.56,6.74,39.38,17.86,0.25,41.37,0.8,0.59,23214,14911,12725
+"Sample_A15_B","Swabian Alb","Fagus sylvatica",76.22,8.23,10.6,2.91,0.15,16.23,0.59,0.47,10395,18714,13395
+"Sample_A16_B","Swabian Alb","Fagus sylvatica",70.01,8.23,12.09,2.68,0.23,19.5,0.98,0.56,22105,16159,15828
+"Sample_A17_B","Swabian Alb","Fagus sylvatica",71.49,7.59,15.16,2.7,0.21,34.73,0.98,0.74,19298,17603,16804
+"Sample_A18_B","Swabian Alb","Fagus sylvatica",74.12,7.68,37.74,15.02,0.29,23.36,0.71,0.52,20852,12480,6634
+"Sample_A2_B","Swabian Alb","Picea abies",77.92,6.89,34.06,15.1,0.19,42.52,0.97,0.6,11402,9770,7502
+"Sample_A20_B","Swabian Alb","Fagus sylvatica",74.06,7.99,41.14,5.41,0.2,28.57,0.8,0.44,29113,23632,11645
+"Sample_A21_B","Swabian Alb","Fagus sylvatica",71.47,8.23,27.14,3.78,0.4,26.36,0.47,0.55,6927,10539,7215
+"Sample_A22_B","Swabian Alb","Fagus sylvatica",72.06,7.95,37.16,9.28,0.2,26.83,0.89,0.57,34726,14839,12025
+"Sample_A23_B","Swabian Alb","Fagus sylvatica",70.41,7.97,24.8,10.35,0.44,22.6,0.65,0.47,22317,17020,13864
+"Sample_A24_B","Swabian Alb","Fagus sylvatica",70.06,8.42,12.61,2.67,0.21,28.61,0.43,0.57,22464,17359,12387
+"Sample_A25_B","Swabian Alb","Fagus sylvatica",70,8.54,9.79,2.42,0.14,17.99,0.77,0.62,18975,16277,13428
+"Sample_A26_B","Swabian Alb","Fagus sylvatica",73.51,7.89,13.19,13.39,0.24,13.69,0.75,0.29,12828,15902,8736
+"Sample_A27_B","Swabian Alb","Fagus sylvatica",70.87,7.9,11.83,2.63,0.19,23.35,0.6,0.43,19922,12007,11204
+"Sample_A28_B","Swabian Alb","Fagus sylvatica",70.8,8.29,23.81,5.81,0.28,29.59,0.79,0.54,44252,15338,14783
+"Sample_A29_B","Swabian Alb","Picea abies",73.52,7.7,32.4,10.68,0.19,35.28,0.58,0.62,25324,24630,16098
+"Sample_A3_B","Swabian Alb","Picea abies",79.44,7.2,31.6,15.95,0.17,43.26,0.94,0.55,15349,20423,12337
+"Sample_A30_B","Swabian Alb","Fagus sylvatica",75.34,7.51,22.35,9.77,0.24,27.53,0.87,0.65,25560,24017,13400
+"Sample_A31_B","Swabian Alb","Picea abies",76.96,7.33,26.44,20.53,0.14,43.58,1,0.55,26679,25104,13955
+"Sample_A32_B","Swabian Alb","Picea abies",75.84,7.44,24.02,15.36,0.18,30.75,0.91,0.54,13356,14971,11847
+"Sample_A33_B","Swabian Alb","Picea abies",73.98,7.38,25.05,19.91,0.17,37.63,0.9,0.47,22572,20226,13862
+"Sample_A34_B","Swabian Alb","Picea abies",75.55,7.48,29.33,16.57,0.13,39,0.95,0.41,8811,14197,10279
+"Sample_A35_B","Swabian Alb","Fagus sylvatica",70.39,8.44,10.74,2.57,0.17,13.06,0.5,0.57,16658,12474,12553
+"Sample_A36_B","Swabian Alb","Fagus sylvatica",72.37,7.62,15.47,8.67,0.38,18.26,0.51,0.66,19388,7587,11766
+"Sample_A37_B","Swabian Alb","Fagus sylvatica",74.84,8.29,12.13,3.43,0.3,14.03,0.65,0.51,24220,15000,16069
+"Sample_A38_B","Swabian Alb","Fagus sylvatica",71.96,8.17,12.01,5.02,0.19,20.63,0.92,0.54,23978,6988,12039
+"Sample_A39_B","Swabian Alb","Fagus sylvatica",71.19,8.19,17.24,2.89,0.26,29.82,0.98,0.68,9793,17038,11147
+"Sample_A4_B","Swabian Alb","Fagus sylvatica",72.46,7.82,13.73,2.77,0.18,32.48,0.92,0.71,10922,13689,11261
+"Sample_A40_B","Swabian Alb","Fagus sylvatica",69.01,8.44,35.41,5.75,0.22,29.72,0.87,0.62,5884,13484,7996
+"Sample_A41_B","Swabian Alb","Fagus sylvatica",73.76,7.83,33.25,3.82,0.2,31.74,0.91,0.57,26951,14463,12268
+"Sample_A42_B","Swabian Alb","Fagus sylvatica",71.13,8.33,25.03,7.5,0.28,25.87,0.92,0.61,6771,16365,14243
+"Sample_A45_B","Swabian Alb","Fagus sylvatica",70.14,8.14,12.01,2.42,0.19,19.18,0.52,0.38,16516,19271,16779
+"Sample_A46_B","Swabian Alb","Fagus sylvatica",71.15,7.83,23.36,5.31,0.33,26.79,0.84,0.61,13197,14942,11032
+"Sample_A47_B","Swabian Alb","Fagus sylvatica",72.06,7.98,26.48,5.17,0.24,34.78,0.74,0.44,18149,15848,16726
+"Sample_A48_B","Swabian Alb","Fagus sylvatica",71.62,8.16,37.14,16.15,0.19,28.61,0.66,0.61,11621,12325,7812
+"Sample_A5_B","Swabian Alb","Fagus sylvatica",72.79,8.24,46.91,3.62,0.13,21.76,0.98,0.48,23697,21362,12337
+"Sample_A50_B","Swabian Alb","Fagus sylvatica",69.87,8.23,34.43,3.01,0.41,31.73,0.85,0.64,19492,21631,17711
+"Sample_A6_B","Swabian Alb","Fagus sylvatica",73.02,7.99,28.44,4.53,0.26,27.44,0.88,0.59,22029,21553,13541
+"Sample_A7_B","Swabian Alb","Fagus sylvatica",72.87,8.02,30.41,14.69,0.39,37.74,0.7,0.55,17114,11790,17433
+"Sample_A8_B","Swabian Alb","Fagus sylvatica",71.69,8.1,36,5.11,0.29,42.05,0.69,0.67,16838,17879,16213
+"Sample_A9_B","Swabian Alb","Fagus sylvatica",70.5,8.29,28.11,6.46,0.29,37.79,0.83,0.51,31218,35348,11281
+"Sample_H1_B","Hainich-Dün","Picea abies",78.48,9.09,44.28,14.69,0.19,48.21,0.75,0.84,27957,10941,11563
+"Sample_H10_B","Hainich-Dün","Fagus sylvatica",80.32,10.19,27.17,2.77,0.38,38.44,0.89,0.91,21194,17522,13198
+"Sample_H11_B","Hainich-Dün","Fagus sylvatica",76.87,9.57,23.07,2.91,0.4,38.93,0.84,0.87,23794,17085,29493
+"Sample_H14_B","Hainich-Dün","Fagus sylvatica",78.45,9.07,10.72,2.67,0.26,10.12,0.77,0.43,11827,13747,12989
+"Sample_H15_B","Hainich-Dün","Fagus sylvatica",76.34,10.41,10.34,2.53,0.18,19.24,0.59,0.49,29822,11595,9874
+"Sample_H16_B","Hainich-Dün","Fagus sylvatica",77.17,9.98,13.49,2.63,0.22,30.53,0.45,0.96,7739,4999,4709
+"Sample_H17_B","Hainich-Dün","Fagus sylvatica",77.98,8.86,12.51,2.68,0.21,23.04,0.94,0.77,4902,15285,16949
+"Sample_H18_B","Hainich-Dün","Fagus sylvatica",77.41,9.7,15.05,3.62,0.23,31.63,0.64,0.68,6956,6161,9614
+"Sample_H19_B","Hainich-Dün","Fagus sylvatica",78.78,9.1,34.11,11.57,0.22,31.12,0.88,0.61,20760,14310,12936
+"Sample_H20_B","Hainich-Dün","Fagus sylvatica",78.61,9.18,34.16,5.15,0.2,34.96,0.9,0.63,10595,13303,14734
+"Sample_H21_B","Hainich-Dün","Fagus sylvatica",78.74,9.31,35.55,5.44,0.24,31.87,0.97,0.7,14144,18695,15305
+"Sample_H22_B","Hainich-Dün","Fagus sylvatica",79.38,9.29,55.79,11.16,0.08,28.74,1,0.62,4647,15126,9966
+"Sample_H23_B","Hainich-Dün","Fagus sylvatica",78.27,8.89,10.24,9.44,0.23,11.18,0.67,0.81,9509,9684,11638
+"Sample_H24_B","Hainich-Dün","Fagus sylvatica",81.21,9.75,34.75,2.67,0.42,30.11,0.94,0.61,12928,6818,10723
+"Sample_H26_B","Hainich-Dün","Fagus sylvatica",78.91,9.18,35.2,9.98,0.35,30.78,0.99,0.56,12042,11398,15805
+"Sample_H27_B","Hainich-Dün","Fagus sylvatica",80.36,9.4,29.1,3.1,0.37,25.89,0.98,0.72,15359,12496,8603
+"Sample_H28_B","Hainich-Dün","Fagus sylvatica",79.48,9.15,31.15,2.9,0.34,25.95,0.96,0.77,12888,7563,9790
+"Sample_H29_B","Hainich-Dün","Fagus sylvatica",76.06,9.67,28.18,7.85,0.4,28.52,0.96,0.93,12075,20488,12738
+"Sample_H30_B","Hainich-Dün","Fagus sylvatica",76.89,9.8,23.88,16.19,0.36,27.98,0.98,0.87,6972,14082,10076
+"Sample_H31_B","Hainich-Dün","Fagus sylvatica",77,9.85,24.26,5.25,0.39,27.22,0.83,0.84,13925,7193,10150
+"Sample_H32_B","Hainich-Dün","Fagus sylvatica",78.19,9.41,21.3,5.46,0.42,22.33,0.68,0.93,14664,15350,10523
+"Sample_H33_B","Hainich-Dün","Fagus sylvatica",80.76,9.18,42.99,7.99,0.28,27.27,0.98,0.51,9914,7068,10957
+"Sample_H34_B","Hainich-Dün","Fagus sylvatica",77.59,9.6,24.82,3.02,0.37,39.76,0.92,0.92,8238,4977,7221
+"Sample_H35_B","Hainich-Dün","Fagus sylvatica",79.1,9.48,22.58,3.45,0.33,37.46,0.89,0.79,9116,10365,9031
+"Sample_H36_B","Hainich-Dün","Fagus sylvatica",78.09,9.77,20.31,3.03,0.38,34.42,0.64,0.7,20686,15761,16157
+"Sample_H37_B","Hainich-Dün","Fagus sylvatica",76.35,9.74,33.38,7.35,0.36,38.53,0.94,0.88,13315,13651,11736
+"Sample_H38_B","Hainich-Dün","Fagus sylvatica",77.47,9.34,28.85,5.76,0.4,39.38,0.91,0.78,12004,12529,13026
+"Sample_H39_B","Hainich-Dün","Fagus sylvatica",76.53,10.27,29.63,2.82,0.42,36.59,0.85,0.87,16811,9858,11014
+"Sample_H4_B","Hainich-Dün","Fagus sylvatica",79.73,9.54,9.16,3.02,0.12,7.09,0.82,0.71,4625,7152,8390
+"Sample_H40_B","Hainich-Dün","Fagus sylvatica",76.57,9.95,29.72,4.25,0.3,40.67,0.67,0.55,19033,10343,9843
+"Sample_H41_B","Hainich-Dün","Fagus sylvatica",77.49,10.23,26.99,2.73,0.39,34.14,0.54,0.54,15161,12017,13743
+"Sample_H42_B","Hainich-Dün","Fagus sylvatica",79.72,10.31,35.06,3.4,0.33,36.1,0.98,0.68,12805,6211,7969
+"Sample_H44_B","Hainich-Dün","Fagus sylvatica",78.5,8.99,10.08,5.73,0.15,12.56,0.73,0.7,15503,18315,20393
+"Sample_H45_B","Hainich-Dün","Fagus sylvatica",76.27,9.14,15.25,2.58,0.2,28.41,0.96,0.44,9911,5879,8196
+"Sample_H46_B","Hainich-Dün","Fagus sylvatica",75.56,9.42,30.57,10.56,0.19,38.77,0.97,0.69,18743,18070,16457
+"Sample_H47_B","Hainich-Dün","Fagus sylvatica",76.97,10.19,34.82,4.01,0.26,38.82,0.94,0.81,14411,8963,9831
+"Sample_H48_B","Hainich-Dün","Fagus sylvatica",78.2,10.1,35.86,6.11,0.36,28.55,0.97,0.57,21640,15430,12079
+"Sample_H49_B","Hainich-Dün","Fagus sylvatica",75.52,10,29.37,6.82,0.33,26.89,0.93,0.69,13606,15720,13520
+"Sample_H5_B","Hainich-Dün","Fagus sylvatica",76.87,9.25,25.5,5.09,0.26,30.29,0.97,0.75,4683,13737,8494
+"Sample_H50_B","Hainich-Dün","Fagus sylvatica",76.05,10.1,22.68,2.74,0.31,30.76,0.97,0.9,9722,5700,7762
+"Sample_H6_B","Hainich-Dün","Fagus sylvatica",82.61,9.48,39.76,10.47,0.16,38.54,0.96,0.82,15030,20550,14665
+"Sample_H7_B","Hainich-Dün","Fagus sylvatica",74.67,10.01,27.13,14.86,0.37,29.89,0.9,0.79,14411,12306,12768
+"Sample_H8_B","Hainich-Dün","Fagus sylvatica",79.82,8.68,25.23,2.7,0.37,29.62,0.95,0.67,16967,25588,18886
+"Sample_H9_B","Hainich-Dün","Fagus sylvatica",77.88,9.73,28.27,7.1,0.41,27.15,0.98,0.87,28419,69100,30175
+"Sample_S1_B","Schorfheide-Chorin","Pinus sylvestris",78.4,12.56,20.6,11.87,0.13,34.64,0.98,0.65,18678,11736,11329
+"Sample_S10_B","Schorfheide-Chorin","Pinus sylvestris",76.21,12.54,15.54,19.34,0.16,30.45,1,0.54,26807,15116,14462
+"Sample_S11_B","Schorfheide-Chorin","Pinus sylvestris",77.7,12.4,13.36,18.28,0.15,42.51,1,0.55,21799,12963,11043
+"Sample_S12_B","Schorfheide-Chorin","Pinus sylvestris",77.2,12.69,15.85,11.8,0.18,34.69,1,0.73,22644,12581,10601
+"Sample_S13_B","Schorfheide-Chorin","Pinus sylvestris",76.38,12.92,21.18,11.41,0.14,50.49,0.99,0.4,37248,16649,15458
+"Sample_S14_B","Schorfheide-Chorin","Pinus sylvestris",77.51,12.66,25.24,18.99,0.11,31.05,1,0.92,34585,20129,21052
+"Sample_S15_B","Schorfheide-Chorin","Pinus sylvestris",77.83,12.57,21.81,15.65,0.13,36.06,1,0.77,40367,19065,21167
+"Sample_S16_B","Schorfheide-Chorin","Pinus sylvestris",78.23,12.8,39.63,36.21,0.12,30.88,0.86,0.4,28837,14544,10183
+"Sample_S17_B","Schorfheide-Chorin","Pinus sylvestris",80.57,12.7,32.2,22.35,0.25,35.61,0.71,0.61,71602,16291,4845
+"Sample_S18_B","Schorfheide-Chorin","Pinus sylvestris",78.01,12.76,28.87,16.28,0.15,36.14,0.86,0.95,25111,12756,15654
+"Sample_S19_B","Schorfheide-Chorin","Pinus sylvestris",76.94,12.78,33.32,33.43,0.09,22.97,0.98,0.5,28233,17622,7848
+"Sample_S2_B","Schorfheide-Chorin","Pinus sylvestris",79.57,12.42,21.16,10.47,0.18,42.54,0.82,0.63,10236,13744,15284
+"Sample_S20_B","Schorfheide-Chorin","Pinus sylvestris",78.18,12.59,34.04,42.56,0.13,24.93,0.94,0.58,37700,11468,8248
+"Sample_S21_B","Schorfheide-Chorin","Pinus sylvestris",78.08,12.69,35.59,29.04,0.16,30.7,0.76,0.83,35665,21232,16224
+"Sample_S23_B","Schorfheide-Chorin","Fagus sylvatica",81.19,12.57,26.8,2.78,0.33,32.44,0.59,0.68,25800,11668,13970
+"Sample_S27_B","Schorfheide-Chorin","Fagus sylvatica",80.93,12.77,32.93,9.8,0.32,33.71,0.66,0.75,22473,16724,12821
+"Sample_S29_B","Schorfheide-Chorin","Fagus sylvatica",77.6,12.85,24.4,21.6,0.29,28.35,0.84,0.43,14962,14258,13227
+"Sample_S3_B","Schorfheide-Chorin","Pinus sylvestris",79.86,12.44,33.79,19.82,0.12,37.51,0.94,0.9,16870,8805,7780
+"Sample_S30_B","Schorfheide-Chorin","Fagus sylvatica",76.2,12.65,29.77,6.11,0.27,29.3,0.74,0.45,14139,14280,9621
+"Sample_S31_B","Schorfheide-Chorin","Fagus sylvatica",81.45,12.76,33.45,11.02,0.25,32.08,0.5,0.93,8168,18961,10852
+"Sample_S32_B","Schorfheide-Chorin","Pinus sylvestris",75.68,12.94,42.27,63.08,0.14,17.33,0.62,0.43,19876,10054,7461
+"Sample_S33_B","Schorfheide-Chorin","Fagus sylvatica",79.38,12.63,25.1,3.63,0.29,37,0.72,0.72,24417,19357,15459
+"Sample_S34_B","Schorfheide-Chorin","Fagus sylvatica",77.18,12.76,26.33,4,0.28,26.71,0.89,0.69,8880,8329,11591
+"Sample_S35_B","Schorfheide-Chorin","Fagus sylvatica",80.72,12.52,36.13,13.86,0.3,24.2,0.96,0.69,19291,15361,10726
+"Sample_S36_B","Schorfheide-Chorin","Fagus sylvatica",77.78,12.68,34.5,2.5,0.18,29.05,0.99,0.75,14998,7013,13755
+"Sample_S37_B","Schorfheide-Chorin","Fagus sylvatica",79.23,12.66,41.56,8.59,0.22,31.78,0.83,0.7,6794,13904,8719
+"Sample_S38_B","Schorfheide-Chorin","Fagus sylvatica",80.43,12.66,47.14,8.85,0.2,24.37,0.52,0.68,18319,8880,7037
+"Sample_S39_B","Schorfheide-Chorin","Fagus sylvatica",82.45,12.34,39.88,5.68,0.32,18.77,0.64,0.63,20784,11757,7638
+"Sample_S4_B","Schorfheide-Chorin","Fagus sylvatica",81.18,12.4,27.26,2.71,0.26,38.64,0.73,0.67,12785,12136,8562
+"Sample_S40_B","Schorfheide-Chorin","Fagus sylvatica",81.51,12.43,33.95,10.17,0.41,20.26,0.72,0.69,9181,14444,8093
+"Sample_S41_B","Schorfheide-Chorin","Fagus sylvatica",81.87,12.16,28.75,3.46,0.38,22.19,0.55,0.85,16509,14657,8003
+"Sample_S42_B","Schorfheide-Chorin","Fagus sylvatica",80.9,12.66,18.58,12.66,0.45,19.81,0.99,0.87,14714,4875,9490
+"Sample_S44_B","Schorfheide-Chorin","Fagus sylvatica",79.2,12.49,28.83,7.35,0.43,21.55,0.66,0.67,32351,16692,12414
+"Sample_S45_B","Schorfheide-Chorin","Fagus sylvatica",77.73,12.49,50.9,2.57,0.17,38.89,0.97,0.91,17425,8687,7742
+"Sample_S46_B","Schorfheide-Chorin","Fagus sylvatica",77.67,12.36,66.88,3.3,0.09,35.57,0.95,0.65,8634,3386,6586
+"Sample_S47_B","Schorfheide-Chorin","Fagus sylvatica",79.15,12.44,49.87,5.83,0.22,34.82,0.95,0.64,16011,7097,11153
+"Sample_S48_B","Schorfheide-Chorin","Fagus sylvatica",77.98,12.58,24.19,2.68,0.43,31.6,0.47,0.89,27734,13398,13030
+"Sample_S49_B","Schorfheide-Chorin","Fagus sylvatica",78.85,12.81,38.5,9.89,0.27,23.08,0.97,0.84,14467,14692,14198
+"Sample_S5_B","Schorfheide-Chorin","Fagus sylvatica",79.14,12.86,43.84,38.93,0.38,25.72,0.93,0.73,30368,17427,10338
+"Sample_S50_B","Schorfheide-Chorin","Fagus sylvatica",78.08,12.56,48.5,15.63,0.21,29.24,0.97,0.63,19644,19206,13131
+"Sample_S7_B","Schorfheide-Chorin","Fagus sylvatica",78.39,12.49,52.91,5.64,0.16,37.51,0.96,0.63,24713,21682,16046
+"Sample_S8_B","Schorfheide-Chorin","Fagus sylvatica",79.18,12.32,48.98,3.09,0.3,39.77,0.9,0.76,15631,11266,16257
+"Sample_S9_B","Schorfheide-Chorin","Fagus sylvatica",77.55,12.45,42.95,2.72,0.21,42.97,0.95,0.86,22800,14441,11392

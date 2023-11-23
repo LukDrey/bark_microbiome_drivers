@@ -229,10 +229,11 @@ ASV_table_fungi_cur$discarded_count
 ###
 
 # Load ASV table for bacteria (available as supplementary data).
-bacteria_asv <- utils::read.csv(here::here("Data", 'asv_table_bacteria.txt'), header = T, sep = '\t')
+bacteria_asv <- utils::read.csv(here::here("Data", 'asv_table_bacteria_new.txt'), header = T, sep = '\t') %>% 
+  tibble::rownames_to_column(var = "sequence_bacteria")
 
 # Load FASTA file to get ASV_IDs.
-bacteria_seqs_fasta <- Biostrings::readDNAStringSet(here::here("Data", 'ASVs_bacteria.fa'))
+bacteria_seqs_fasta <- Biostrings::readDNAStringSet(here::here("Data", 'ASVs_bacteria_new.fa'))
 
 # Make a dataframe of the sequences and their ASV ID. 
 seq_name_bacteria <- base::names(bacteria_seqs_fasta)
@@ -256,8 +257,8 @@ base::rownames(bacteria_conc) <- base::paste0("Sample_", bacteria_conc$sample_ID
 base::rownames(bacteria_conc) <- base::sub("[-]", "_", x = base::rownames(bacteria_conc))
 
 # Make the parts of the phyloseq object.
-ASV_mat_decontam_fun <- base::data.matrix(bacteria_asv_IDs)
-ASV_bacteria_decontam <- phyloseq::otu_table(ASV_mat_decontam_fun, taxa_are_rows = TRUE)
+ASV_mat_decontam_bac <- base::data.matrix(bacteria_asv_IDs)
+ASV_bacteria_decontam <- phyloseq::otu_table(ASV_mat_decontam_bac, taxa_are_rows = TRUE)
 sampledata_bacteria_decontam <- phyloseq::sample_data(bacteria_conc)
 
 # Combine with phyloseq
@@ -294,7 +295,7 @@ ps_bacteria_noncontam
 ps_bacteria_noncontam_pruned <- phyloseq::prune_taxa(phyloseq::taxa_sums(ps_bacteria_noncontam) > 0,
                                            ps_bacteria_noncontam)
 ASV_table_bacteria <- base::as.data.frame(phyloseq::otu_table(ps_bacteria_noncontam_pruned))
-bacteria_matchlist <- utils::read.table(here::here("Data", 'match_list_bacteria.txt'),
+bacteria_matchlist <- utils::read.table(here::here("Data", 'match_list_bacteria_new.txt'),
                                  header = F,
                                  as.is = T,
                                  stringsAsFactors = F)
@@ -313,7 +314,7 @@ ASV_table_bacteria_cur$discarded_count
 
 saveRDS(ASV_table_algae_cur, "ASV_table_algae_cur.rds")
 
-saveRDS(ASV_table_bacteria_cur, "ASV_table_bacteria_cur.rds")
+saveRDS(ASV_table_bacteria_cur, "ASV_table_bacteria_cur_new.rds")
 
 saveRDS(ASV_table_fungi_cur, "ASV_table_fungi_cur.rds")
 

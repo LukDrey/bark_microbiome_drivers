@@ -39,6 +39,10 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+# R Workspaces
+
+*.RData
+
 # pkgdown site
 docs/
 
@@ -53,3 +57,11 @@ rsconnect/
 
 # Exclude Figure folder
 Figures/
+
+# Exclude lulu log files
+
+*lulu*
+
+# Exclude gdm temporary files
+
+*gdm*

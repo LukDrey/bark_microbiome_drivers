@@ -6,15 +6,15 @@
 library(here); packageVersion("here")
 #1.0.1
 library(effects); packageVersion("effects")
-#4.2.1
+#4.2.2
 library(hillR); packageVersion("hillR")
 #0.5.1
 library(tidyverse); packageVersion("tidyverse")
-#1.3.2
+#2.0.0
 library(phyloseq); packageVersion("phyloseq")
-#1.40.0
+#1.44.0
 library(ggeffects); packageVersion("ggeffects")
-#1.1.2
+#1.2.3
 
 #################################################################
 ##                          Section 2                          ##
@@ -23,12 +23,17 @@ library(ggeffects); packageVersion("ggeffects")
 #Read in the phyloseq files from the data cleaning section. 
 phy_algae_bark <- base::readRDS(here("Data", "phy_algae_bark.rds"))
 
-phy_bacteria_bark <- base::readRDS(here("Data", "phy_bacteria_bark.rds"))
+phy_bacteria_bark <- base::readRDS(here("Data", "phy_bacteria_bark_new.rds"))
 
 phy_fungi_bark <- base::readRDS(here("Data", "phy_fungi_bark.rds"))
 
 metadata_bark <- base::data.frame(phyloseq::sample_data(phy_fungi_bark)) %>% 
-  tibble::rownames_to_column(var = "Sample_ID")
+  tibble::rownames_to_column(var = "Sample_ID") %>%  
+  dplyr::select(-one_of("tree_type", "stand_density_abundance",
+                        "precipitation_radolan", "enl_2019",
+                        "stand_evenness_basal_area", "d_SD",
+                        "PAR", "Plot_ID", "substrate"))
+
 
 #################################################################
 ##                          Section 3                          ##
@@ -73,7 +78,7 @@ fun_q1_bark_alpha <- base::data.frame("fun_q1" = hillR::hill_taxa(asv_fungi_hill
 fun_q2_bark_alpha <- base::data.frame("fun_q2" = hillR::hill_taxa(asv_fungi_hill_bark, q = 2, MARGIN = 2)) %>% 
   tibble::rownames_to_column(var = "Sample_ID")
 
-# Join with the rest of the metadata and rename the column to have distinct columns for the organisms.
+# Join with the rest of the metadata.
 metadata_alpha <- metadata_bark  %>% 
   dplyr::inner_join(.,alg_q0_bark_alpha) %>% 
   dplyr::inner_join(.,alg_q1_bark_alpha) %>% 
@@ -85,16 +90,34 @@ metadata_alpha <- metadata_bark  %>%
   dplyr::inner_join(.,fun_q1_bark_alpha) %>% 
   dplyr::inner_join(.,fun_q2_bark_alpha) 
 
-# Scale the response variables to make effects comparable between our three organismal groups. 
+# Calculate the library size and append it to the metadata. 
+alg_library <- data.frame(library_size_alg = phyloseq::sample_sums(phy_algae_bark)) %>% 
+  tibble::rownames_to_column(var = "Sample_ID")
+
+fun_library <- data.frame(library_size_fun = phyloseq::sample_sums(phy_fungi_bark)) %>% 
+  tibble::rownames_to_column(var = "Sample_ID")
+
+bac_library <- data.frame(library_size_bac = phyloseq::sample_sums(phy_bacteria_bark)) %>% 
+  tibble::rownames_to_column(var = "Sample_ID")
+
+metadata_alpha <- metadata_alpha %>% 
+  dplyr::inner_join(., alg_library) %>% 
+  dplyr::inner_join(., fun_library) %>% 
+  dplyr::inner_join(., bac_library)
+
+# Scale the variables to make effects comparable between the models. 
 metadata_alpha_scaled <- metadata_alpha %>% 
   dplyr::mutate(across(.cols = c("alg_q0", "alg_q1", "alg_q2",
                                  "bac_q0", "bac_q1", "bac_q2",
-                                 "fun_q0", "fun_q1", "fun_q2"),~(scale(.) %>% as.vector))) %>% 
+                                 "fun_q0", "fun_q1", "fun_q2"),~(scale(.) %>% as.numeric))) %>% 
   # Furthermore, scale the explanatory variables since they have very different units. 
   dplyr::mutate(across(.cols = c("rH_200", "Ta_200", "stand_density_basal_area", 
                                  "DBH_avg", "d_gini", "RA_forest", 
-                                 "canopy_openness_2019", "dom_tot_ratio"),~(scale(.) %>% as.vector)))
+                                 "canopy_openness_2019", "dom_tot_ratio"),~(scale(.) %>% as.numeric))) %>% 
+  dplyr::mutate(across(.cols = c("library_size_alg", "library_size_fun",
+                                 "library_size_bac"), ~(log(.) %>% as.numeric)))
 
+metadata_alpha_scaled$exploratory <- as.factor(metadata_alpha_scaled$exploratory)
 
 ############
 # Linear Models of alpha diversity
@@ -113,7 +136,8 @@ lm_q0_alg_second <- stats::lm(alg_q0 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          bac_q0 +
-                         fun_q0,
+                         fun_q0 + 
+                         offset(library_size_alg),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q0_alg_second)  
@@ -132,7 +156,8 @@ lm_q1_alg_second <- stats::lm(alg_q1 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          bac_q1 +
-                         fun_q1,
+                         fun_q1 + 
+                           offset(library_size_alg),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q1_alg_second)  
@@ -151,7 +176,8 @@ lm_q2_alg_second <- stats::lm(alg_q2 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          bac_q2 +
-                         fun_q2,
+                         fun_q2 + 
+                           offset(library_size_alg),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q2_alg_second)  
@@ -171,7 +197,8 @@ lm_q0_bac_second <- stats::lm(bac_q0 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          fun_q0 +
-                         alg_q0,
+                         alg_q0 + 
+                           offset(library_size_bac),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q0_bac_second)  
@@ -190,7 +217,8 @@ lm_q1_bac_second <- stats::lm(bac_q1 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          fun_q1 +
-                         alg_q1,
+                         alg_q1 + 
+                           offset(library_size_bac),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q1_bac_second)  
@@ -209,7 +237,8 @@ lm_q2_bac_second <- stats::lm(bac_q2 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          fun_q2 +
-                         alg_q2,
+                         alg_q2 + 
+                           offset(library_size_bac),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q2_bac_second)  
@@ -229,7 +258,8 @@ lm_q0_fun_second <- stats::lm(fun_q0 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          bac_q0 +
-                         alg_q0,
+                         alg_q0 + 
+                           offset(library_size_fun),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q0_fun_second)  
@@ -248,7 +278,8 @@ lm_q1_fun_second <- stats::lm(fun_q1 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          bac_q1 +
-                         alg_q1,
+                         alg_q1 + 
+                           offset(library_size_fun),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q1_fun_second)  
@@ -267,7 +298,8 @@ lm_q2_fun_second <- stats::lm(fun_q2 ~ exploratory +
                          dom_tot_ratio + 
                          RA_forest + 
                          bac_q2 +
-                         alg_q2,
+                         alg_q2 + 
+                           offset(library_size_fun),
                        data = metadata_alpha_scaled,
                        na.action = "na.fail")
 base::summary(lm_q2_fun_second)  
@@ -291,7 +323,18 @@ p_step2 <- c(p_step2, (summary(lm_q2_fun_second)$coefficients[-1,4]))
 
 p_adj_step2 <- p.adjust(p_step2, method = "fdr")
 
-p_vals_step2 <- data.frame(names(p_step2) ,round(p_step2, 3), round(p_adj_step2,3))
+p_vals_step2 <- data.frame(level = c(rep("algae_q0", 12),
+                                     rep("algae_q1", 12),
+                                     rep("algae_q2", 12),
+                                     rep("bacteria_q0", 12),
+                                     rep("bacteria_q1", 12),
+                                     rep("bacteria_q2", 12),
+                                     rep("fungi_q0", 12),
+                                     rep("fungi_q1", 12),
+                                     rep("fungi_q2", 12)),
+                           variable = names(p_step2) , 
+                           p_val = round(p_step2, 3), 
+                           p_val_adj = round(p_adj_step2,3))
 
 ##---------------------------------------------------------------
 ##                   Variance Partitioning                      -
@@ -306,7 +349,8 @@ p_vals_step2 <- data.frame(names(p_step2) ,round(p_step2, 3), round(p_adj_step2,
 ###
 #q0 
 lm_q0_alg_second_biotic <- stats::lm(alg_q0 ~ bac_q0 +
-                                       fun_q0,
+                                       fun_q0 + 
+                                       offset(library_size_alg),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -317,17 +361,20 @@ lm_q0_alg_second_abiotic <- stats::lm(alg_q0 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_alg),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q0_alg_second_geo <- stats::lm(alg_q0 ~ exploratory,
+lm_q0_alg_second_geo <- stats::lm(alg_q0 ~ exploratory + 
+                                    offset(library_size_alg),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q0_alg_second_geo_bio <- stats::lm(alg_q0 ~ exploratory +
                                         bac_q0 +
-                                        fun_q0,
+                                        fun_q0 + 
+                                        offset(library_size_alg),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
@@ -339,7 +386,8 @@ lm_q0_alg_second_geo_abio <- stats::lm(alg_q0 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_alg),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -352,7 +400,8 @@ lm_q0_alg_second_bio_abio <- stats::lm(alg_q0 ~ bac_q0 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_alg),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -371,7 +420,8 @@ alg_var_lm_q0 <- modEvA::varPart(A = summary(lm_q0_alg_second_biotic)$r.squared,
 
 #q1 
 lm_q1_alg_second_biotic <- stats::lm(alg_q1 ~ bac_q1 +
-                                       fun_q1,
+                                       fun_q1 + 
+                                       offset(library_size_alg),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -382,17 +432,20 @@ lm_q1_alg_second_abiotic <- stats::lm(alg_q1 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_alg),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q1_alg_second_geo <- stats::lm(alg_q1 ~ exploratory,
+lm_q1_alg_second_geo <- stats::lm(alg_q1 ~ exploratory + 
+                                    offset(library_size_alg),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q1_alg_second_geo_bio <- stats::lm(alg_q1 ~ exploratory +
                                         bac_q1 +
-                                        fun_q1,
+                                        fun_q1 + 
+                                        offset(library_size_alg),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -404,7 +457,8 @@ lm_q1_alg_second_geo_abio <- stats::lm(alg_q1 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_alg),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -417,7 +471,8 @@ lm_q1_alg_second_bio_abio <- stats::lm(alg_q1 ~ bac_q1 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_alg),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -436,7 +491,8 @@ alg_var_lm_q1 <- modEvA::varPart(A = summary(lm_q1_alg_second_biotic)$r.squared,
 
 #q2 
 lm_q2_alg_second_biotic <- stats::lm(alg_q2 ~ bac_q2 +
-                                       fun_q2,
+                                       fun_q2 + 
+                                       offset(library_size_alg),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -447,17 +503,20 @@ lm_q2_alg_second_abiotic <- stats::lm(alg_q2 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_alg),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q2_alg_second_geo <- stats::lm(alg_q2 ~ exploratory,
+lm_q2_alg_second_geo <- stats::lm(alg_q2 ~ exploratory + 
+                                    offset(library_size_alg),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q2_alg_second_geo_bio <- stats::lm(alg_q2 ~ exploratory +
                                         bac_q2 +
-                                        fun_q2,
+                                        fun_q2 + 
+                                        offset(library_size_alg),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -469,7 +528,8 @@ lm_q2_alg_second_geo_abio <- stats::lm(alg_q2 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_alg),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -482,7 +542,8 @@ lm_q2_alg_second_bio_abio <- stats::lm(alg_q2 ~ bac_q2 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_alg),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -519,7 +580,8 @@ alg_variance_lm <- rbind(alg_var_lm_q0, alg_var_lm_q1, alg_var_lm_q2) %>%
 ###
 #q0 
 lm_q0_fun_second_biotic <- stats::lm(fun_q0 ~ bac_q0 +
-                                       alg_q0,
+                                       alg_q0 + 
+                                       offset(library_size_fun),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -530,17 +592,20 @@ lm_q0_fun_second_abiotic <- stats::lm(fun_q0 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_fun),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q0_fun_second_geo <- stats::lm(fun_q0 ~ exploratory,
+lm_q0_fun_second_geo <- stats::lm(fun_q0 ~ exploratory + 
+                                    offset(library_size_fun),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q0_fun_second_geo_bio <- stats::lm(fun_q0 ~ exploratory +
                                         bac_q0 +
-                                        alg_q0,
+                                        alg_q0 + 
+                                        offset(library_size_fun),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -552,7 +617,8 @@ lm_q0_fun_second_geo_abio <- stats::lm(fun_q0 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_fun),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -565,7 +631,8 @@ lm_q0_fun_second_bio_abio <- stats::lm(fun_q0 ~ bac_q0 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_fun),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -584,7 +651,8 @@ fun_var_lm_q0 <- modEvA::varPart(A = summary(lm_q0_fun_second_biotic)$r.squared,
 
 #q1 
 lm_q1_fun_second_biotic <- stats::lm(fun_q1 ~ bac_q1 +
-                                       alg_q1,
+                                       alg_q1 + 
+                                       offset(library_size_fun),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -595,17 +663,20 @@ lm_q1_fun_second_abiotic <- stats::lm(fun_q1 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_fun),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q1_fun_second_geo <- stats::lm(fun_q1 ~ exploratory,
+lm_q1_fun_second_geo <- stats::lm(fun_q1 ~ exploratory + 
+                                    offset(library_size_fun),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q1_fun_second_geo_bio <- stats::lm(fun_q1 ~ exploratory +
                                         bac_q1 +
-                                        alg_q1,
+                                        alg_q1 + 
+                                        offset(library_size_fun),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -617,7 +688,8 @@ lm_q1_fun_second_geo_abio <- stats::lm(fun_q1 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_fun),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -630,7 +702,8 @@ lm_q1_fun_second_bio_abio <- stats::lm(fun_q1 ~ bac_q1 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_fun),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -649,7 +722,8 @@ fun_var_lm_q1 <- modEvA::varPart(A = summary(lm_q1_fun_second_biotic)$r.squared,
 
 #q2 
 lm_q2_fun_second_biotic <- stats::lm(fun_q2 ~ bac_q2 +
-                                       alg_q2,
+                                       alg_q2 + 
+                                       offset(library_size_fun),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -660,17 +734,20 @@ lm_q2_fun_second_abiotic <- stats::lm(fun_q2 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_fun),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q2_fun_second_geo <- stats::lm(fun_q2 ~ exploratory,
+lm_q2_fun_second_geo <- stats::lm(fun_q2 ~ exploratory + 
+                                    offset(library_size_fun),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q2_fun_second_geo_bio <- stats::lm(fun_q2 ~ exploratory +
                                         bac_q2 +
-                                        alg_q2,
+                                        alg_q2 + 
+                                        offset(library_size_fun),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -682,7 +759,8 @@ lm_q2_fun_second_geo_abio <- stats::lm(fun_q2 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_fun),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -695,7 +773,8 @@ lm_q2_fun_second_bio_abio <- stats::lm(fun_q2 ~ bac_q2 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_fun),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -731,7 +810,8 @@ fun_variance_lm <- rbind(fun_var_lm_q0, fun_var_lm_q1, fun_var_lm_q2) %>%
 ###
 #q0 
 lm_q0_bac_second_biotic <- stats::lm(bac_q0 ~ fun_q0 +
-                                       alg_q0,
+                                       alg_q0 + 
+                                       offset(library_size_bac),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -742,17 +822,20 @@ lm_q0_bac_second_abiotic <- stats::lm(bac_q0 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_bac),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q0_bac_second_geo <- stats::lm(bac_q0 ~ exploratory,
+lm_q0_bac_second_geo <- stats::lm(bac_q0 ~ exploratory + 
+                                    offset(library_size_bac),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q0_bac_second_geo_bio <- stats::lm(bac_q0 ~ exploratory +
                                         fun_q0 +
-                                        alg_q0,
+                                        alg_q0 + 
+                                        offset(library_size_bac),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -764,7 +847,8 @@ lm_q0_bac_second_geo_abio <- stats::lm(bac_q0 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_bac),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -777,7 +861,8 @@ lm_q0_bac_second_bio_abio <- stats::lm(bac_q0 ~ fun_q0 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_bac),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -796,7 +881,8 @@ bac_var_lm_q0 <- modEvA::varPart(A = summary(lm_q0_bac_second_biotic)$r.squared,
 
 #q1 
 lm_q1_bac_second_biotic <- stats::lm(bac_q1 ~ fun_q1 +
-                                       alg_q1,
+                                       alg_q1 + 
+                                       offset(library_size_bac),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -807,17 +893,20 @@ lm_q1_bac_second_abiotic <- stats::lm(bac_q1 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_bac),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q1_bac_second_geo <- stats::lm(bac_q1 ~ exploratory,
+lm_q1_bac_second_geo <- stats::lm(bac_q1 ~ exploratory + 
+                                    offset(library_size_bac),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q1_bac_second_geo_bio <- stats::lm(bac_q1 ~ exploratory +
                                         fun_q1 +
-                                        alg_q1,
+                                        alg_q1 + 
+                                        offset(library_size_bac),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -829,7 +918,8 @@ lm_q1_bac_second_geo_abio <- stats::lm(bac_q1 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_bac),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -842,7 +932,8 @@ lm_q1_bac_second_bio_abio <- stats::lm(bac_q1 ~ fun_q1 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_bac),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -861,7 +952,8 @@ bac_var_lm_q1 <- modEvA::varPart(A = summary(lm_q1_bac_second_biotic)$r.squared,
 
 #q2 
 lm_q2_bac_second_biotic <- stats::lm(bac_q2 ~ fun_q2 +
-                                       alg_q2,
+                                       alg_q2 + 
+                                       offset(library_size_bac),
                                      data = metadata_alpha_scaled,
                                      na.action = "na.fail")
 
@@ -872,17 +964,20 @@ lm_q2_bac_second_abiotic <- stats::lm(bac_q2 ~ rH_200 +
                                         d_gini +
                                         canopy_openness_2019 +
                                         dom_tot_ratio + 
-                                        RA_forest,
+                                        RA_forest + 
+                                        offset(library_size_bac),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
-lm_q2_bac_second_geo <- stats::lm(bac_q2 ~ exploratory,
+lm_q2_bac_second_geo <- stats::lm(bac_q2 ~ exploratory + 
+                                    offset(library_size_bac),
                                   data = metadata_alpha_scaled,
                                   na.action = "na.fail")
 
 lm_q2_bac_second_geo_bio <- stats::lm(bac_q2 ~ exploratory +
                                         fun_q2 +
-                                        alg_q2,
+                                        alg_q2 + 
+                                        offset(library_size_bac),
                                       data = metadata_alpha_scaled,
                                       na.action = "na.fail")
 
@@ -894,7 +989,8 @@ lm_q2_bac_second_geo_abio <- stats::lm(bac_q2 ~ exploratory +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_bac),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -907,7 +1003,8 @@ lm_q2_bac_second_bio_abio <- stats::lm(bac_q2 ~ fun_q2 +
                                          d_gini +
                                          canopy_openness_2019 +
                                          dom_tot_ratio + 
-                                         RA_forest,
+                                         RA_forest + 
+                                         offset(library_size_bac),
                                        data = metadata_alpha_scaled,
                                        na.action = "na.fail")
 
@@ -962,8 +1059,8 @@ alg_q2_pred_fun <- ggeffects::ggpredict(lm_q2_alg_second, terms = "fun_q2")
 algae_fungal_effect <- ggplot() +
   geom_line(data = alg_q0_pred_fun,mapping = aes(x = x, y = predicted),
             color = algae_col, linewidth = 0.7) + 
-  geom_text(data = alg_q0_pred_fun, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = alg_q0_pred_fun, aes(x = max(x) - 0.08,
+                                        y = max(predicted) + 0.05), label = "***",
             size = 4) +
   geom_line(data = alg_q1_pred_fun,mapping = aes(x = x, y = predicted),
             color = algae_col, linetype = "dotdash", linewidth = 0.7) +
@@ -989,9 +1086,6 @@ algae_bacterial_effect <- ggplot() +
             color = algae_col, linetype = "dotdash", linewidth = 0.7) +
   geom_line(data = alg_q2_pred_bac, mapping = aes(x = x, y = predicted),
             color = algae_col, linetype = "dotted", linewidth = 0.7) + 
-  geom_text(data = alg_q2_pred_bac, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
-            size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
@@ -1199,11 +1293,14 @@ bac_q2_pred_fun <- ggeffects::ggpredict(lm_q2_bac_second, terms = "fun_q2")
 bacteria_fungal_effect <- ggplot() +
   geom_line(data = bac_q0_pred_fun,mapping = aes(x = x, y = predicted),
             color = bacteria_col, linewidth = 0.7) + 
-  geom_text(data = bac_q0_pred_fun, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = bac_q0_pred_fun, aes(x = max(x) - 0.2 ,
+                                        y = max(predicted) + 0.05), label = "***",
             size = 4) +
   geom_line(data = bac_q1_pred_fun,mapping = aes(x = x, y = predicted),
-            color = bacteria_col, linetype = "dotdash", linewidth = 0.7) +
+            color = bacteria_col, linetype = "dotdash", linewidth = 0.7) + 
+  geom_text(data = bac_q1_pred_fun, aes(x = max(x) + 0.8,
+                                        y = max(predicted) + 0.05), label = "***",
+            size = 4) +
   geom_line(data = bac_q2_pred_fun,mapping = aes(x = x, y = predicted),
             color = bacteria_col, linetype = "dotted", linewidth = 0.7) + 
   theme_bw() + 
@@ -1226,8 +1323,8 @@ bacteria_algal_effect <- ggplot() +
             color = bacteria_col, linetype = "dotdash", linewidth = 0.7) +
   geom_line(data = bac_q2_pred_alg, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linetype = "dotted", linewidth = 0.7) + 
-  geom_text(data = bac_q2_pred_alg, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = bac_q2_pred_alg, aes(x = max(x),
+                                        y = max(predicted)+ 0.02), label = "**",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1268,7 +1365,7 @@ bacteria_temperature_effect <- ggplot() +
   geom_line(data = bac_q1_pred_Ta_200, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linetype = "dotdash", linewidth = 0.7) +
   geom_line(data = bac_q2_pred_Ta_200, mapping = aes(x = x, y = predicted),
-            color = bacteria_col, linetype = "dotted", linewidth = 0.7) + 
+            color = bacteria_col, linetype = "dotted", linewidth = 0.7)  + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
@@ -1309,6 +1406,9 @@ bacteria_DBH_effect <- ggplot() +
             color = bacteria_col, linetype = "dotdash", linewidth = 0.7) +
   geom_line(data = bac_q2_pred_DBH_avg, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linetype = "dotted", linewidth = 0.7) + 
+  geom_text(data = bac_q2_pred_DBH_avg, aes(x = max(x) + 0.1,
+                                           y = max(predicted) - 0.04), label = "*",
+            size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
@@ -1325,18 +1425,18 @@ bac_q2_pred_d_gini <- ggeffects::ggpredict(lm_q2_bac_second, terms = "d_gini")
 bacteria_gini_effect <- ggplot() +
   geom_line(data = bac_q0_pred_d_gini, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linewidth = 0.7) + 
-  geom_text(data = bac_q0_pred_d_gini, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = bac_q0_pred_d_gini, aes(x = max(x) + 0.2,
+                                        y = max(predicted) - 0.02), label = "***",
             size = 4)+
   geom_line(data = bac_q1_pred_d_gini, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linetype = "dotdash", linewidth = 0.7) + 
-  geom_text(data = bac_q1_pred_d_gini, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = bac_q1_pred_d_gini, aes(x = max(x) + 0.2,
+                                        y = max(predicted) - 0.02), label = "***",
             size = 4)+
   geom_line(data = bac_q2_pred_d_gini, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linetype = "dotted", linewidth = 0.7) + 
-  geom_text(data = bac_q2_pred_d_gini, aes(x = max(x) + 0.1,
-                                        y = max(predicted) - 0.05), label = "*",
+  geom_text(data = bac_q2_pred_d_gini, aes(x = max(x) + 0.2,
+                                        y = max(predicted) - 0.05), label = "***",
             size = 4)+ 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1354,13 +1454,13 @@ bac_q2_pred_canopy_openness_2019 <- ggeffects::ggpredict(lm_q2_bac_second, terms
 bacteria_canopy_effect <- ggplot() +
   geom_line(data = bac_q0_pred_canopy_openness_2019, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linewidth = 0.7) + 
-  geom_text(data = bac_q0_pred_canopy_openness_2019, aes(x = max(x) + 0.1,
-                                           y = min(predicted)), label = "*",
+  geom_text(data = bac_q0_pred_canopy_openness_2019, aes(x = max(x) + 0.15,
+                                           y = min(predicted) + 0.1), label = "***",
             size = 4) +
   geom_line(data = bac_q1_pred_canopy_openness_2019, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linetype = "dotdash", linewidth = 0.7) + 
-  geom_text(data = bac_q1_pred_canopy_openness_2019, aes(x = max(x) + 0.1,
-                                           y = min(predicted)), label = "*",
+  geom_text(data = bac_q1_pred_canopy_openness_2019, aes(x = max(x) + 0.3,
+                                           y = min(predicted) + 0.07), label = "*",
             size = 4) +
   geom_line(data = bac_q2_pred_canopy_openness_2019, mapping = aes(x = x, y = predicted),
             color = bacteria_col, linetype = "dotted", linewidth = 0.7) + 
@@ -1449,8 +1549,8 @@ fun_q2_pred_bac <- ggeffects::ggpredict(lm_q2_fun_second, terms = "bac_q2")
 fungi_bacterial_effect <- ggplot() +
   geom_line(data = fun_q0_pred_bac,mapping = aes(x = x, y = predicted),
             color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = fun_q0_pred_bac, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = fun_q0_pred_bac, aes(x = max(x) - 0.9,
+                                        y = max(predicted)), label = "***",
             size = 4) +
   geom_line(data = fun_q1_pred_bac,mapping = aes(x = x, y = predicted),
             color = fungi_col, linetype = "dotdash", linewidth = 0.7) +
@@ -1472,8 +1572,8 @@ fun_q2_pred_alg <- ggeffects::ggpredict(lm_q2_fun_second, terms = "alg_q2")
 fungi_algal_effect <- ggplot() +
   geom_line(data = fun_q0_pred_alg, mapping = aes(x = x, y = predicted),
             color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = fun_q0_pred_alg, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = fun_q0_pred_alg, aes(x = max(x) + 0.35,
+                                        y = max(predicted) - 0.1), label = "**",
             size = 4) +
   geom_line(data = fun_q1_pred_alg, mapping = aes(x = x, y = predicted),
             color = fungi_col, linetype = "dotdash", linewidth = 0.7) +
@@ -1495,18 +1595,18 @@ fun_q2_pred_rH_200 <- ggeffects::ggpredict(lm_q2_fun_second, terms = "rH_200")
 fungi_humidity_effect <- ggplot() +
   geom_line(data = fun_q0_pred_rH_200, mapping = aes(x = x, y = predicted),
             color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = fun_q0_pred_rH_200, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = fun_q0_pred_rH_200, aes(x = max(x) + 0.2,
+                                        y = max(predicted) + 0.02), label = "**",
             size = 4) +
   geom_line(data = fun_q1_pred_rH_200, mapping = aes(x = x, y = predicted),
             color = fungi_col, linetype = "dotdash", linewidth = 0.7) + 
-  geom_text(data = fun_q1_pred_rH_200, aes(x = max(x) + 0.1,
-                                        y = max(predicted) - 0.1), label = "*",
+  geom_text(data = fun_q1_pred_rH_200, aes(x = max(x) + 0.2,
+                                        y = max(predicted)), label = "**",
             size = 4) +
   geom_line(data = fun_q2_pred_rH_200, mapping = aes(x = x, y = predicted),
             color = fungi_col, linetype = "dotted", linewidth = 0.7) + 
-  geom_text(data = fun_q2_pred_rH_200, aes(x = max(x) + 0.1,
-                                        y = max(predicted)), label = "*",
+  geom_text(data = fun_q2_pred_rH_200, aes(x = max(x) + 0.2,
+                                        y = max(predicted) - 0.2), label = "**",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1604,18 +1704,18 @@ fun_q2_pred_canopy_openness_2019 <- ggeffects::ggpredict(lm_q2_fun_second, terms
 fungi_canopy_effect <- ggplot() +
   geom_line(data = fun_q0_pred_canopy_openness_2019, mapping = aes(x = x, y = predicted),
             color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = fun_q0_pred_canopy_openness_2019, aes(x = max(x) + 0.1,
-                                                         y = max(predicted) ), label = "*",
+  geom_text(data = fun_q0_pred_canopy_openness_2019, aes(x = max(x) + 0.2,
+                                                         y = max(predicted) + 0.01), label = "**",
             size = 4) +
   geom_line(data = fun_q1_pred_canopy_openness_2019, mapping = aes(x = x, y = predicted),
             color = fungi_col, linetype = "dotdash", linewidth = 0.7) + 
-  geom_text(data = fun_q1_pred_canopy_openness_2019, aes(x = max(x) + 0.1,
-                                                         y = max(predicted) - 0.1), label = "*",
+  geom_text(data = fun_q1_pred_canopy_openness_2019, aes(x = max(x) + 0.2,
+                                                         y = max(predicted) + 0.01), label = "**",
             size = 4) +
   geom_line(data = fun_q2_pred_canopy_openness_2019, mapping = aes(x = x, y = predicted),
             color = fungi_col, linetype = "dotted", linewidth = 0.7) + 
-  geom_text(data = fun_q2_pred_canopy_openness_2019, aes(x = max(x) + 0.1,
-                                                         y = max(predicted)), label = "*",
+  geom_text(data = fun_q2_pred_canopy_openness_2019, aes(x = max(x) + 0.2,
+                                                         y = max(predicted) - 0.2), label = "**",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1825,3 +1925,78 @@ ggplot2::ggsave(here("Figures", "effects_alpha_supplementary.eps"), plot = effec
 
 ggplot2::ggsave(here("Figures","effects_alpha_supplementary.png"), plot = effects_alpha_supplementary, device = png,
                 width = 175, height = 250, units = "mm")
+
+
+#################################################################
+##                          Section 4                          ##
+##                   Miscallenous Data Export                  ##
+#################################################################
+
+# Export the metadata for the supplementary material. 
+metadata_final <- metadata_alpha %>% 
+  dplyr::mutate(exploratory = stringr::str_replace(exploratory, "Alb", "Swabian Alb"),
+                exploratory = stringr::str_replace(exploratory, "Hainich", "Hainich-Dün"),
+                exploratory = stringr::str_replace(exploratory, "Schorfheide", "Schorfheide-Chorin")) %>%
+  dplyr::mutate(dominant_tree = stringr::str_replace(dominant_tree, "Picea_abies", "Picea abies"),
+                dominant_tree = stringr::str_replace(dominant_tree, "Fagus_sylvatica", "Fagus sylvatica"),
+                dominant_tree = stringr::str_replace(dominant_tree, "Pinus_sylvestris", "Pinus sylvestris")) %>%
+  dplyr::rename(relative_humidity = rH_200,
+                temperature = Ta_200,
+                stand_density = stand_density_basal_area,
+                average_DBH = DBH_avg,
+                gini_coefficient = d_gini,
+                forest_area = RA_forest,
+                canopy_openness = canopy_openness_2019,
+                ratio_of_dominant_trees = dom_tot_ratio,
+                library_size_algae = library_size_alg,
+                library_size_fungi = library_size_fun,
+                library_size_bacteria = library_size_bac) %>% 
+  dplyr::mutate(average_DBH = base::round(average_DBH, 2),
+                canopy_openness = base::round(canopy_openness, 2),
+                gini_coefficient = base::round(gini_coefficient, 2),
+                stand_density = base::round(stand_density, 2),
+                forest_area = base::round(forest_area, 2)) %>% 
+  dplyr::select("Sample_ID", "exploratory", "dominant_tree","relative_humidity", "temperature",
+                "average_DBH", "canopy_openness", "gini_coefficient", "stand_density",
+                "ratio_of_dominant_trees", "forest_area", 
+                "library_size_algae", "library_size_fungi", "library_size_bacteria")
+
+write.csv(metadata_final, "metadata_final.csv", row.names = F)
+
+# Export the table with coefficient estimates. 
+
+estimates <- (summary(lm_q0_alg_second)$coefficients[-1, 1]) %>% 
+  c(., (summary(lm_q1_alg_second)$coefficients[-1, 1])) %>% 
+  c(., (summary(lm_q2_alg_second)$coefficients[-1, 1])) %>% 
+  c(., (summary(lm_q0_bac_second)$coefficients[-1, 1])) %>%
+  c(., (summary(lm_q1_bac_second)$coefficients[-1, 1])) %>%
+  c(., (summary(lm_q2_bac_second)$coefficients[-1, 1])) %>%
+  c(., (summary(lm_q0_fun_second)$coefficients[-1, 1])) %>%
+  c(., (summary(lm_q1_fun_second)$coefficients[-1, 1])) %>%
+  c(., (summary(lm_q2_fun_second)$coefficients[-1, 1]))
+
+sta_err <- (summary(lm_q0_alg_second)$coefficients[-1, 2]) %>% 
+  c(., (summary(lm_q1_alg_second)$coefficients[-1, 2])) %>% 
+  c(., (summary(lm_q2_alg_second)$coefficients[-1, 2])) %>% 
+  c(., (summary(lm_q0_bac_second)$coefficients[-1, 2])) %>%
+  c(., (summary(lm_q1_bac_second)$coefficients[-1, 2])) %>%
+  c(., (summary(lm_q2_bac_second)$coefficients[-1, 2])) %>%
+  c(., (summary(lm_q0_fun_second)$coefficients[-1, 2])) %>%
+  c(., (summary(lm_q1_fun_second)$coefficients[-1, 2])) %>%
+  c(., (summary(lm_q2_fun_second)$coefficients[-1, 2]))
+  
+coefs <- data.frame(level = c(rep("algae_q0", 12),
+                              rep("algae_q1", 12),
+                              rep("algae_q2", 12),
+                              rep("bacteria_q0", 12),
+                              rep("bacteria_q1", 12),
+                              rep("bacteria_q2", 12),
+                              rep("fungi_q0", 12),
+                              rep("fungi_q1", 12),
+                              rep("fungi_q2", 12)),
+                    variable = names(estimates),
+                    estimate = round(estimates, 3),
+                    standard_error = round(sta_err, 3)) %>% 
+  dplyr::left_join(p_vals_step2, by = c("variable", "level"))
+
+write.csv(coefs, "coef_table.csv", row.names = F)

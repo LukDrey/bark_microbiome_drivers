@@ -6,17 +6,17 @@
 library(here); packageVersion("here")
 #1.0.1
 library(vegan); packageVersion("vegan")
-#2.6.2
+#2.6.4
 library(tidyverse); packageVersion("tidyverse")
-#1.3.2
+#2.0.0
 library(hillR); packageVersion("hillR")
 #0.5.1
 library(gdm); packageVersion("gdm")
-#1.5.0.7
+#1.5.0.9.1
 library(phyloseq); packageVersion("phyloseq")
-#1.40.0
+#1.44.0
 library(effects); packageVersion("effects")
-#4.2.1
+#4.2.2
 
 ##----------------------------------------------------------------
 ##                        Custom Functions                       -
@@ -39,7 +39,7 @@ cqn_q1 <- function(beta, N){1-log(beta)/log(N)}
 # Read in the phyloseq files from the Data Cleaning section.
 phy_algae_bark <- base::readRDS(here("Data", "phy_algae_bark.rds"))
 
-phy_bacteria_bark <- base::readRDS(here("Data", "phy_bacteria_bark.rds"))
+phy_bacteria_bark <- base::readRDS(here("Data", "phy_bacteria_bark_new.rds"))
 
 phy_fungi_bark <- base::readRDS(here("Data", "phy_fungi_bark.rds"))
 
@@ -133,6 +133,25 @@ fun_q2_bark_beta_complement_cqn <- base::data.frame(site1 = bac_q0_bark_beta$sit
                                               fun_q2_cqn = (1 - by_hand_cqn(fun_q2_bark_beta$TD_beta, q = 2, N = 2)))
 
 
+# Calculate the library size and append it to the metadata. 
+alg_library <- data.frame(library_size_alg = phyloseq::sample_sums(phy_algae_bark)) %>% 
+  tibble::rownames_to_column(var = "Sample_ID")
+
+fun_library <- data.frame(library_size_fun = phyloseq::sample_sums(phy_fungi_bark)) %>% 
+  tibble::rownames_to_column(var = "Sample_ID")
+
+bac_library <- data.frame(library_size_bac = phyloseq::sample_sums(phy_bacteria_bark)) %>% 
+  tibble::rownames_to_column(var = "Sample_ID")
+
+metadata_bark <- metadata_bark %>% 
+  dplyr::inner_join(., alg_library) %>% 
+  dplyr::inner_join(., fun_library) %>% 
+  dplyr::inner_join(., bac_library) %>% 
+  dplyr::mutate(weight_library_size_alg = (1/library_size_alg)) %>% 
+  dplyr::mutate(weight_library_size_fun = (1/library_size_fun)) %>% 
+  dplyr::mutate(weight_library_size_bac = (1/library_size_bac)) 
+  
+
 # Get the predictors in a format we need for the GDM.
 metadata_bark_beta <- dplyr::rename(metadata_bark, 
                                     site1 = Sample_ID,
@@ -140,8 +159,12 @@ metadata_bark_beta <- dplyr::rename(metadata_bark,
                                     xCoord = Longitude) %>% 
   dplyr::select(., c("site1", "rH_200", "Ta_200","stand_density_basal_area", 
                      "DBH_avg", "d_gini", "RA_forest", "canopy_openness_2019",
-                     "dom_tot_ratio", "yCoord", "xCoord")) %>% 
+                     "dom_tot_ratio", "yCoord", "xCoord", "weight_library_size_alg",
+                     "weight_library_size_fun", "weight_library_size_bac", 
+                     "library_size_alg", "library_size_fun", "library_size_bac")) %>% 
   dplyr::mutate(site2 = site1)
+
+
 
 # Get the geographical data in a format we need for the GDM.
 metadata_bark_geo <- metadata_bark  %>% 
@@ -160,7 +183,9 @@ data_gdm_q0 <- alg_q0_bark_beta_complement_cqn %>%
   dplyr::left_join(., metadata_bark_beta %>% 
                      dplyr::select("site1", "rH_200", "Ta_200","stand_density_basal_area", 
                                    "DBH_avg", "d_gini", "RA_forest", "canopy_openness_2019",
-                                   "dom_tot_ratio", "yCoord", "xCoord"), by = "site1") %>% 
+                                   "dom_tot_ratio", "yCoord", "xCoord", "weight_library_size_alg",
+                                   "weight_library_size_fun", "weight_library_size_bac", 
+                                   "library_size_alg", "library_size_fun", "library_size_bac"), by = "site1") %>% 
   dplyr::rename(s1.rH_200 = rH_200,
                 s1.Ta_200 = Ta_200,
                 s1.stand_density_basal_area = stand_density_basal_area,
@@ -170,11 +195,19 @@ data_gdm_q0 <- alg_q0_bark_beta_complement_cqn %>%
                 s1.canopy_openness_2019 = canopy_openness_2019,
                 s1.dom_tot_ratio = dom_tot_ratio,
                 s1.yCoord = yCoord,
-                s1.xCoord = xCoord)  %>% 
+                s1.xCoord = xCoord,
+                s1.weight_library_size_alg = weight_library_size_alg,
+                s1.weight_library_size_fun = weight_library_size_fun,
+                s1.weight_library_size_bac = weight_library_size_bac, 
+                s1.library_size_alg = library_size_alg,
+                s1.library_size_fun = library_size_fun,
+                s1.library_size_bac = library_size_bac)  %>% 
   dplyr::left_join(., metadata_bark_beta %>% 
                      dplyr::select("site2", "rH_200", "Ta_200","stand_density_basal_area", 
                                    "DBH_avg", "d_gini", "RA_forest", "canopy_openness_2019",
-                                   "dom_tot_ratio", "yCoord", "xCoord"), by = "site2") %>% 
+                                   "dom_tot_ratio", "yCoord", "xCoord", "weight_library_size_alg",
+                                   "weight_library_size_fun", "weight_library_size_bac", 
+                                   "library_size_alg", "library_size_fun", "library_size_bac"), by = "site2") %>% 
   dplyr::rename(s2.rH_200 = rH_200,
                 s2.Ta_200 =Ta_200,
                 s2.stand_density_basal_area = stand_density_basal_area,
@@ -184,7 +217,13 @@ data_gdm_q0 <- alg_q0_bark_beta_complement_cqn %>%
                 s2.canopy_openness_2019 = canopy_openness_2019,
                 s2.dom_tot_ratio = dom_tot_ratio,
                 s2.yCoord = yCoord,
-                s2.xCoord = xCoord) 
+                s2.xCoord = xCoord,
+                s2.weight_library_size_alg = weight_library_size_alg,
+                s2.weight_library_size_fun = weight_library_size_fun,
+                s2.weight_library_size_bac = weight_library_size_bac, 
+                s2.library_size_alg = library_size_alg,
+                s2.library_size_fun = library_size_fun,
+                s2.library_size_bac = library_size_bac) 
 
 # q = 1
 data_gdm_q1 <- alg_q1_bark_beta_complement_cqn %>% 
@@ -193,7 +232,10 @@ data_gdm_q1 <- alg_q1_bark_beta_complement_cqn %>%
   dplyr::left_join(., metadata_bark_beta %>% 
                      dplyr::select("site1", "rH_200", "Ta_200","stand_density_basal_area", 
                                    "DBH_avg", "d_gini", "RA_forest", "canopy_openness_2019",
-                                   "dom_tot_ratio", "yCoord", "xCoord"), by = "site1") %>% 
+                                   "dom_tot_ratio", "yCoord", "xCoord", "weight_library_size_alg",
+                                   "weight_library_size_fun", "weight_library_size_bac", 
+                                   "library_size_alg", "library_size_fun", "library_size_bac"),
+                   by = "site1") %>% 
   dplyr::rename(s1.rH_200 = rH_200,
                 s1.Ta_200 = Ta_200,
                 s1.stand_density_basal_area = stand_density_basal_area,
@@ -203,11 +245,20 @@ data_gdm_q1 <- alg_q1_bark_beta_complement_cqn %>%
                 s1.canopy_openness_2019 = canopy_openness_2019,
                 s1.dom_tot_ratio = dom_tot_ratio,
                 s1.yCoord = yCoord,
-                s1.xCoord = xCoord)  %>% 
+                s1.xCoord = xCoord,
+                s1.weight_library_size_alg = weight_library_size_alg,
+                s1.weight_library_size_fun = weight_library_size_fun,
+                s1.weight_library_size_bac = weight_library_size_bac, 
+                s1.library_size_alg = library_size_alg,
+                s1.library_size_fun = library_size_fun,
+                s1.library_size_bac = library_size_bac)  %>% 
   dplyr::left_join(., metadata_bark_beta %>% 
                      dplyr::select("site2", "rH_200", "Ta_200","stand_density_basal_area", 
                                    "DBH_avg", "d_gini", "RA_forest", "canopy_openness_2019",
-                                   "dom_tot_ratio", "yCoord", "xCoord"), by = "site2") %>% 
+                                   "dom_tot_ratio", "yCoord", "xCoord", "weight_library_size_alg",
+                                   "weight_library_size_fun", "weight_library_size_bac", 
+                                   "library_size_alg", "library_size_fun", "library_size_bac"),
+                   by = "site2") %>% 
   dplyr::rename(s2.rH_200 = rH_200,
                 s2.Ta_200 =Ta_200,
                 s2.stand_density_basal_area = stand_density_basal_area,
@@ -217,7 +268,13 @@ data_gdm_q1 <- alg_q1_bark_beta_complement_cqn %>%
                 s2.canopy_openness_2019 = canopy_openness_2019,
                 s2.dom_tot_ratio = dom_tot_ratio,
                 s2.yCoord = yCoord,
-                s2.xCoord = xCoord) 
+                s2.xCoord = xCoord,
+                s2.weight_library_size_alg = weight_library_size_alg,
+                s2.weight_library_size_fun = weight_library_size_fun,
+                s2.weight_library_size_bac = weight_library_size_bac, 
+                s2.library_size_alg = library_size_alg,
+                s2.library_size_fun = library_size_fun,
+                s2.library_size_bac = library_size_bac) 
 
 # q = 2
 data_gdm_q2 <- alg_q2_bark_beta_complement_cqn %>% 
@@ -226,7 +283,9 @@ data_gdm_q2 <- alg_q2_bark_beta_complement_cqn %>%
   dplyr::left_join(., metadata_bark_beta %>% 
                      dplyr::select("site1", "rH_200", "Ta_200","stand_density_basal_area", 
                                    "DBH_avg", "d_gini", "RA_forest", "canopy_openness_2019",
-                                   "dom_tot_ratio", "yCoord", "xCoord"), by = "site1") %>% 
+                                   "dom_tot_ratio", "yCoord", "xCoord", "weight_library_size_alg",
+                                   "weight_library_size_fun", "weight_library_size_bac", 
+                                   "library_size_alg", "library_size_fun", "library_size_bac"), by = "site1") %>% 
   dplyr::rename(s1.rH_200 = rH_200,
                 s1.Ta_200 = Ta_200,
                 s1.stand_density_basal_area = stand_density_basal_area,
@@ -236,11 +295,19 @@ data_gdm_q2 <- alg_q2_bark_beta_complement_cqn %>%
                 s1.canopy_openness_2019 = canopy_openness_2019,
                 s1.dom_tot_ratio = dom_tot_ratio,
                 s1.yCoord = yCoord,
-                s1.xCoord = xCoord)  %>% 
+                s1.xCoord = xCoord,
+                s1.weight_library_size_alg = weight_library_size_alg,
+                s1.weight_library_size_fun = weight_library_size_fun,
+                s1.weight_library_size_bac = weight_library_size_bac, 
+                s1.library_size_alg = library_size_alg,
+                s1.library_size_fun = library_size_fun,
+                s1.library_size_bac = library_size_bac)  %>% 
   dplyr::left_join(., metadata_bark_beta %>% 
                      dplyr::select("site2", "rH_200", "Ta_200","stand_density_basal_area", 
                                    "DBH_avg", "d_gini", "RA_forest", "canopy_openness_2019",
-                                   "dom_tot_ratio", "yCoord", "xCoord"), by = "site2") %>% 
+                                   "dom_tot_ratio", "yCoord", "xCoord", "weight_library_size_alg",
+                                   "weight_library_size_fun", "weight_library_size_bac", 
+                                   "library_size_alg", "library_size_fun", "library_size_bac"), by = "site2") %>% 
   dplyr::rename(s2.rH_200 = rH_200,
                 s2.Ta_200 =Ta_200,
                 s2.stand_density_basal_area = stand_density_basal_area,
@@ -250,7 +317,13 @@ data_gdm_q2 <- alg_q2_bark_beta_complement_cqn %>%
                 s2.canopy_openness_2019 = canopy_openness_2019,
                 s2.dom_tot_ratio = dom_tot_ratio,
                 s2.yCoord = yCoord,
-                s2.xCoord = xCoord) 
+                s2.xCoord = xCoord,
+                s2.weight_library_size_alg = weight_library_size_alg,
+                s2.weight_library_size_fun = weight_library_size_fun,
+                s2.weight_library_size_bac = weight_library_size_bac, 
+                s2.library_size_alg = library_size_alg,
+                s2.library_size_fun = library_size_fun,
+                s2.library_size_bac = library_size_bac) 
 
 # For the GDM we only need each combination of site1 & site2 once so we need to remove
 # the rest from our input table. 
@@ -289,8 +362,8 @@ data_gdm_q0_alg <- data_gdm_q0 %>%
                 s2.bac_q0_cqn = bac_q0_cqn,
                 s2.fun_q0_cqn = fun_q0_cqn) %>% 
   tibble::add_column(., s1.bac_q0_cqn = 0,
-                     s1.fun_q0_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.fun_q0_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_alg + s2.weight_library_size_alg)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.bac_q0_cqn", "s1.fun_q0_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -308,8 +381,8 @@ data_gdm_q1_alg <- data_gdm_q1 %>%
                 s2.bac_q1_cqn = bac_q1_cqn,
                 s2.fun_q1_cqn = fun_q1_cqn) %>% 
   tibble::add_column(., s1.bac_q1_cqn = 0,
-                     s1.fun_q1_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.fun_q1_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_alg + s2.weight_library_size_alg)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.bac_q1_cqn", "s1.fun_q1_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -326,8 +399,8 @@ data_gdm_q2_alg <- data_gdm_q2 %>%
                 s2.bac_q2_cqn = bac_q2_cqn,
                 s2.fun_q2_cqn = fun_q2_cqn) %>% 
   tibble::add_column(., s1.bac_q2_cqn = 0,
-                     s1.fun_q2_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.fun_q2_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_alg + s2.weight_library_size_alg)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.bac_q2_cqn", "s1.fun_q2_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -345,8 +418,8 @@ data_gdm_q0_bac <- data_gdm_q0 %>%
                 s2.alg_q0_cqn = alg_q0_cqn,
                 s2.fun_q0_cqn = fun_q0_cqn) %>% 
   tibble::add_column(., s1.alg_q0_cqn = 0,
-                     s1.fun_q0_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.fun_q0_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_bac + s2.weight_library_size_bac)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.alg_q0_cqn", "s1.fun_q0_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -364,8 +437,8 @@ data_gdm_q1_bac <- data_gdm_q1 %>%
                 s2.alg_q1_cqn = alg_q1_cqn,
                 s2.fun_q1_cqn = fun_q1_cqn) %>% 
   tibble::add_column(., s1.alg_q1_cqn = 0,
-                     s1.fun_q1_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.fun_q1_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_bac + s2.weight_library_size_bac)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.alg_q1_cqn", "s1.fun_q1_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -382,8 +455,8 @@ data_gdm_q2_bac <- data_gdm_q2 %>%
                 s2.alg_q2_cqn = alg_q2_cqn,
                 s2.fun_q2_cqn = fun_q2_cqn) %>% 
   tibble::add_column(., s1.alg_q2_cqn = 0,
-                     s1.fun_q2_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.fun_q2_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_bac + s2.weight_library_size_bac)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.alg_q2_cqn", "s1.fun_q2_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -402,8 +475,8 @@ data_gdm_q0_fun <- data_gdm_q0 %>%
                 s2.alg_q0_cqn = alg_q0_cqn,
                 s2.bac_q0_cqn = bac_q0_cqn) %>% 
   tibble::add_column(., s1.alg_q0_cqn = 0,
-                     s1.bac_q0_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.bac_q0_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_fun + s2.weight_library_size_fun)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.alg_q0_cqn", "s1.bac_q0_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -421,8 +494,8 @@ data_gdm_q1_fun <- data_gdm_q1 %>%
                 s2.alg_q1_cqn = alg_q1_cqn,
                 s2.bac_q1_cqn = bac_q1_cqn) %>% 
   tibble::add_column(., s1.alg_q1_cqn = 0,
-                     s1.bac_q1_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.bac_q1_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_fun + s2.weight_library_size_fun)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.alg_q1_cqn", "s1.bac_q1_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -439,8 +512,8 @@ data_gdm_q2_fun <- data_gdm_q2 %>%
                 s2.alg_q2_cqn = alg_q2_cqn,
                 s2.bac_q2_cqn = bac_q2_cqn) %>% 
   tibble::add_column(., s1.alg_q2_cqn = 0,
-                     s1.bac_q2_cqn = 0, 
-                     weights = 1) %>% 
+                     s1.bac_q2_cqn = 0) %>% 
+  dplyr::mutate(weights = c(s1.weight_library_size_fun + s2.weight_library_size_fun)/2) %>% 
   dplyr::select("distance", "weights", "s1.xCoord", "s1.yCoord", "s2.xCoord", "s2.yCoord", 
                 "s1.alg_q2_cqn", "s1.bac_q2_cqn",
                 "s1.rH_200", "s1.Ta_200", "s1.stand_density_basal_area",
@@ -515,21 +588,24 @@ gdm_fun_q2_perm
 
 # Correct the p-values using the Benjamini-Hochberg procedure. 
 
-p_gdm <- as.data.frame(gdm_alg_q0_perm$`Predictor p-values`)
-p_gdm <- rbind(p_gdm, gdm_alg_q1_perm$`Predictor p-values`)
-p_gdm <- rbind(p_gdm, gdm_alg_q2_perm$`Predictor p-values`)
+p_gdm <- as.data.frame(cbind(gdm_alg_q0_perm$`Predictor p-values`, level = rep("Algae_q0", 10)))
+p_gdm <- rbind(p_gdm, cbind(gdm_alg_q1_perm$`Predictor p-values`, level = rep("Algae_q1", 9)))
+p_gdm <- rbind(p_gdm, cbind(gdm_alg_q2_perm$`Predictor p-values`, level = rep("Algae_q2", 9)))
 
-p_gdm <- rbind(p_gdm, gdm_fun_q0_perm$`Predictor p-values`)
-p_gdm <- rbind(p_gdm, gdm_fun_q1_perm$`Predictor p-values`)
-p_gdm <- rbind(p_gdm, gdm_fun_q2_perm$`Predictor p-values`)
+p_gdm <- rbind(p_gdm, cbind(gdm_fun_q0_perm$`Predictor p-values`, level = rep("Fungi_q0", 10)))
+p_gdm <- rbind(p_gdm, cbind(gdm_fun_q1_perm$`Predictor p-values`, level = rep("Fungi_q1", 11)))
+p_gdm <- rbind(p_gdm, cbind(gdm_fun_q2_perm$`Predictor p-values`, level = rep("Fungi_q2", 10)))
 
-p_gdm <- rbind(p_gdm, gdm_bac_q0_perm$`Predictor p-values`)
-p_gdm <- rbind(p_gdm, gdm_bac_q1_perm$`Predictor p-values`)
-p_gdm <- rbind(p_gdm, gdm_bac_q2_perm$`Predictor p-values`)
+p_gdm <- rbind(p_gdm, cbind(gdm_bac_q0_perm$`Predictor p-values`, level = rep("Bacteria_q0", 8)))
+p_gdm <- rbind(p_gdm, cbind(gdm_bac_q1_perm$`Predictor p-values`, level = rep("Bacteria_q1", 9)))
+p_gdm <- rbind(p_gdm, cbind(gdm_bac_q2_perm$`Predictor p-values`, level = rep("Bacteria_q2", 10)))
 
 p_adj_gdm <- stats::p.adjust(p_gdm$`All predictors`, method = "fdr")
 
-p_vals_gdm <- data.frame(rownames(p_gdm) ,round(p_gdm$`All predictors`, 3), round(p_adj_gdm,3))
+p_vals_gdm <- data.frame(variables = rownames(p_gdm), 
+                         p_value = round(p_gdm$`All predictors`, 3),
+                         p_value_adjusted = round(p_adj_gdm,3),
+                         level = p_gdm$level)
 
 ##---------------------------------------------------------------
 ##                    Variance partitioning                     -
@@ -694,7 +770,10 @@ data_lm_beta_q0 <- data_gdm_q0 %>%
                 delta_d_gini = abs(s1.d_gini - s2.d_gini),
                 delta_RA_forest = abs(s1.RA_forest - s2.RA_forest),
                 delta_canopy_openness_2019 = abs(s1.canopy_openness_2019 - s2.canopy_openness_2019),
-                delta_dom_tot_ratio = abs(s1.dom_tot_ratio - s2.dom_tot_ratio)) %>% 
+                delta_dom_tot_ratio = abs(s1.dom_tot_ratio - s2.dom_tot_ratio), 
+                delta_algae_library_size = abs((1/s1.library_size_alg) - (1/s2.library_size_alg)), 
+                delta_bacteria_library_size = abs(c(1/s1.library_size_bac) - (1/s2.library_size_bac)), 
+                delta_fungi_library_size = abs((1/s1.library_size_fun) - (1/s2.library_size_fun))) %>% 
   dplyr::select(., "site1", "site2", "alg_q0_cqn", "bac_q0_cqn",
                 "fun_q0_cqn", all_of(contains("delta")))
 
@@ -706,7 +785,10 @@ data_lm_beta_q1 <- data_gdm_q1 %>%
                 delta_d_gini = abs(s1.d_gini - s2.d_gini),
                 delta_RA_forest = abs(s1.RA_forest - s2.RA_forest),
                 delta_canopy_openness_2019 = abs(s1.canopy_openness_2019 - s2.canopy_openness_2019),
-                delta_dom_tot_ratio = abs(s1.dom_tot_ratio - s2.dom_tot_ratio)) %>% 
+                delta_dom_tot_ratio = abs(s1.dom_tot_ratio - s2.dom_tot_ratio), 
+                delta_algae_library_size = abs((1/s1.library_size_alg) - (1/s2.library_size_alg)), 
+                delta_bacteria_library_size = abs(c(1/s1.library_size_bac) - (1/s2.library_size_bac)), 
+                delta_fungi_library_size = abs((1/s1.library_size_fun) - (1/s2.library_size_fun))) %>% 
   dplyr::select(., "site1", "site2", "alg_q1_cqn", "bac_q1_cqn",
                 "fun_q1_cqn", all_of(contains("delta")))
 
@@ -718,7 +800,10 @@ data_lm_beta_q2 <- data_gdm_q2 %>%
                 delta_d_gini = abs(s1.d_gini - s2.d_gini),
                 delta_RA_forest = abs(s1.RA_forest - s2.RA_forest),
                 delta_canopy_openness_2019 = abs(s1.canopy_openness_2019 - s2.canopy_openness_2019),
-                delta_dom_tot_ratio = abs(s1.dom_tot_ratio - s2.dom_tot_ratio)) %>% 
+                delta_dom_tot_ratio = abs(s1.dom_tot_ratio - s2.dom_tot_ratio), 
+                delta_algae_library_size = abs((1/s1.library_size_alg) - (1/s2.library_size_alg)), 
+                delta_bacteria_library_size = abs(c(1/s1.library_size_bac) - (1/s2.library_size_bac)), 
+                delta_fungi_library_size = abs((1/s1.library_size_fun) - (1/s2.library_size_fun))) %>% 
   dplyr::select(., "site1", "site2", "alg_q2_cqn", "bac_q2_cqn",
                 "fun_q2_cqn", all_of(contains("delta")))
 
@@ -731,7 +816,10 @@ data_lm_beta_q0_scaled <- data_lm_beta_q0  %>%
                                  "delta_DBH_avg", "delta_d_gini",
                                  "delta_RA_forest", 
                                  "delta_canopy_openness_2019",
-                                 "delta_dom_tot_ratio"), scale))
+                                 "delta_dom_tot_ratio"), scale)) %>% 
+  dplyr::mutate(across(.cols = c("delta_algae_library_size", "delta_bacteria_library_size",
+                                 "delta_fungi_library_size"), log1p))
+
 
 lm_beta_q0_alg <- stats::lm(alg_q0_cqn ~ bac_q0_cqn +
                               fun_q0_cqn + 
@@ -742,8 +830,10 @@ lm_beta_q0_alg <- stats::lm(alg_q0_cqn ~ bac_q0_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                              data = data_lm_beta_q0_scaled)
+                              delta_dom_tot_ratio +
+                              offset(delta_algae_library_size),
+                              data = data_lm_beta_q0_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q0_alg)
 plot(effects::allEffects(lm_beta_q0_alg))
@@ -757,8 +847,10 @@ lm_beta_q0_bac <- stats::lm(bac_q0_cqn ~ alg_q0_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                            data = data_lm_beta_q0_scaled)
+                              delta_dom_tot_ratio +
+                              offset(delta_bacteria_library_size),
+                            data = data_lm_beta_q0_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q0_bac)
 plot(effects::allEffects(lm_beta_q0_bac))
@@ -772,8 +864,10 @@ lm_beta_q0_fun <- stats::lm(fun_q0_cqn ~ alg_q0_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                            data = data_lm_beta_q0_scaled)
+                              delta_dom_tot_ratio +
+                              offset(delta_fungi_library_size),
+                            data = data_lm_beta_q0_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q0_fun)
 plot(effects::allEffects(lm_beta_q0_fun))
@@ -788,7 +882,9 @@ data_lm_beta_q1_scaled <- data_lm_beta_q1  %>%
                                  "delta_DBH_avg", "delta_d_gini",
                                  "delta_RA_forest", 
                                  "delta_canopy_openness_2019",
-                                 "delta_dom_tot_ratio"), scale))
+                                 "delta_dom_tot_ratio"), scale)) %>% 
+  dplyr::mutate(across(.cols = c("delta_algae_library_size", "delta_bacteria_library_size",
+                                 "delta_fungi_library_size"), log1p))
 
 lm_beta_q1_alg <- stats::lm(alg_q1_cqn ~ bac_q1_cqn +
                               fun_q1_cqn + 
@@ -799,8 +895,10 @@ lm_beta_q1_alg <- stats::lm(alg_q1_cqn ~ bac_q1_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                            data = data_lm_beta_q1_scaled)
+                              delta_dom_tot_ratio +
+                              offset(delta_algae_library_size),
+                            data = data_lm_beta_q1_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q1_alg)
 plot(effects::allEffects(lm_beta_q1_alg))
@@ -814,8 +912,10 @@ lm_beta_q1_bac <- stats::lm(bac_q1_cqn ~ alg_q1_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                            data = data_lm_beta_q1_scaled)
+                              delta_dom_tot_ratio+
+                              offset(delta_bacteria_library_size),
+                            data = data_lm_beta_q1_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q1_bac)
 plot(effects::allEffects(lm_beta_q1_bac))
@@ -829,8 +929,10 @@ lm_beta_q1_fun <- stats::lm(fun_q1_cqn ~ alg_q1_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                            data = data_lm_beta_q1_scaled)
+                              delta_dom_tot_ratio +
+                              offset(delta_fungi_library_size),
+                            data = data_lm_beta_q1_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q1_fun)
 plot(effects::allEffects(lm_beta_q1_fun))
@@ -844,7 +946,9 @@ data_lm_beta_q2_scaled <- data_lm_beta_q2  %>%
                                  "delta_DBH_avg", "delta_d_gini",
                                  "delta_RA_forest", 
                                  "delta_canopy_openness_2019",
-                                 "delta_dom_tot_ratio"), scale))
+                                 "delta_dom_tot_ratio"), scale)) %>% 
+  dplyr::mutate(across(.cols = c("delta_algae_library_size", "delta_bacteria_library_size",
+                                 "delta_fungi_library_size"), log1p))
 
 lm_beta_q2_alg <- stats::lm(alg_q2_cqn ~ bac_q2_cqn +
                               fun_q2_cqn + 
@@ -855,8 +959,10 @@ lm_beta_q2_alg <- stats::lm(alg_q2_cqn ~ bac_q2_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                            data = data_lm_beta_q2_scaled)
+                              delta_dom_tot_ratio +
+                              offset(delta_algae_library_size),
+                            data = data_lm_beta_q2_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q2_alg)
 plot(effects::allEffects(lm_beta_q2_alg))
@@ -870,8 +976,10 @@ lm_beta_q2_bac <- stats::lm(bac_q2_cqn ~ alg_q2_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                            data = data_lm_beta_q2_scaled)
+                              delta_dom_tot_ratio +
+                              offset(delta_bacteria_library_size),
+                            data = data_lm_beta_q2_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q2_bac)
 plot(effects::allEffects(lm_beta_q2_bac))
@@ -885,8 +993,10 @@ lm_beta_q2_fun <- stats::lm(fun_q2_cqn ~ alg_q2_cqn +
                               delta_d_gini +
                               delta_RA_forest +
                               delta_canopy_openness_2019 +
-                              delta_dom_tot_ratio,
-                            data = data_lm_beta_q2_scaled)
+                              delta_dom_tot_ratio +
+                              offset(delta_fungi_library_size),
+                            data = data_lm_beta_q2_scaled,
+                            na.action = "na.fail")
 
 summary(lm_beta_q2_fun)
 plot(effects::allEffects(lm_beta_q2_fun))
@@ -960,20 +1070,20 @@ algae_canopy_effect
 ######
 fungi_canopy_effect <- ggplot() +
   geom_line(data = gdm_fun_q0_plot_canopy, aes(x = x_canopy, y = y_canopy),
-            color = fungi_col, linewidth = 0.7) + 
+            color = fungi_col, linewidth = 0.7)  + 
   geom_text(data = gdm_fun_q0_plot_canopy, aes(x = max(x_canopy) + 1,
-                                        y = max(y_canopy)), label = "*",
-            size = 4)+ 
+                                               y = max(y_canopy) + 0.02), label = "*",
+            size = 4) + 
   geom_line(data = gdm_fun_q1_plot_canopy, aes(x = x_canopy, y = y_canopy),
             color = fungi_col, linewidth = 0.7, linetype = "dotdash") + 
   geom_text(data = gdm_fun_q1_plot_canopy, aes(x = max(x_canopy) + 1,
                                         y = max(y_canopy)), label = "*",
-            size = 4)+ 
+            size = 4) + 
   geom_line(data = gdm_fun_q2_plot_canopy, aes(x = x_canopy, y = y_canopy),
             color = fungi_col, linewidth = 0.7, linetype = "dotted") + 
   geom_text(data = gdm_fun_q2_plot_canopy, aes(x = max(x_canopy) + 1,
-                                        y = max(y_canopy)), label = "*",
-            size = 4)+ 
+                                        y = max(y_canopy) + 0.05), label = "**",
+            size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
@@ -989,18 +1099,18 @@ fungi_canopy_effect
 bacteria_canopy_effect <- ggplot() +
   geom_line(data = gdm_bac_q0_plot_canopy, aes(x = x_canopy, y = y_canopy),
             color = bacteria_col, linewidth = 0.7) + 
-  geom_text(data = gdm_bac_q0_plot_canopy, aes(x = max(x_canopy) + 1,
-                                               y = max(y_canopy)), label = "*",
+  geom_text(data = gdm_bac_q0_plot_canopy, aes(x = max(x_canopy),
+                                               y = max(y_canopy) + 0.04), label = "**",
             size = 4) + 
   geom_line(data = gdm_bac_q1_plot_canopy, aes(x = x_canopy, y = y_canopy),
             color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_bac_q1_plot_canopy, aes(x = max(x_canopy) + 1,
-                                               y = max(y_canopy)), label = "*",
+  geom_text(data = gdm_bac_q1_plot_canopy, aes(x = max(x_canopy) - 1,
+                                               y = max(y_canopy) - 0.06), label = "***",
             size = 4) + 
   geom_line(data = gdm_bac_q2_plot_canopy, aes(x = x_canopy, y = y_canopy),
             color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
-  geom_text(data = gdm_bac_q2_plot_canopy, aes(x = max(x_canopy) + 1,
-                                               y = max(y_canopy)), label = "*",
+  geom_text(data = gdm_bac_q2_plot_canopy, aes(x = max(x_canopy) - 1,
+                                               y = max(y_canopy) + 0.02), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1066,12 +1176,12 @@ fungi_humidity_effect <- ggplot() +
   geom_line(data = gdm_fun_q1_plot_humidity, aes(x = x_humidity, y = y_humidity),
             color = fungi_col, linewidth = 0.7, linetype = "dotdash") + 
   geom_text(data = gdm_fun_q1_plot_humidity, aes(x = max(x_humidity) + 0.5,
-                                                 y = max(y_humidity)), label = "*",
+                                                 y = max(y_humidity)), label = "**",
             size = 4) + 
   geom_line(data = gdm_fun_q2_plot_humidity, aes(x = x_humidity, y = y_humidity),
             color = fungi_col, linewidth = 0.7, linetype = "dotted") + 
   geom_text(data = gdm_fun_q2_plot_humidity, aes(x = max(x_humidity) + 0.5,
-                                                 y = max(y_humidity)), label = "*",
+                                                 y = max(y_humidity)), label = "**",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1130,7 +1240,10 @@ gdm_fun_q2_plot_temperature <- data.frame(x_temperature = gdm_fun_q2_splineDat$x
 ######
 algae_temperature_effect <- ggplot() +
   geom_line(data = gdm_alg_q0_plot_temperature, aes(x = x_temperature, y = y_temperature),
-            color = algae_col, linewidth = 0.7)  +
+            color = algae_col, linewidth = 0.7) + 
+  geom_text(data = gdm_alg_q0_plot_temperature, aes(x = max(x_temperature) + 0.1,
+                                                    y = max(y_temperature)), label = "*",
+            size = 4) +
   geom_line(data = gdm_alg_q1_plot_temperature, aes(x = x_temperature, y = y_temperature),
             color = algae_col, linewidth = 0.7, linetype = "dotdash") + 
   geom_line(data = gdm_alg_q2_plot_temperature, aes(x = x_temperature, y = y_temperature),
@@ -1150,18 +1263,18 @@ algae_temperature_effect
 fungi_temperature_effect <- ggplot() +
   geom_line(data = gdm_fun_q0_plot_temperature, aes(x = x_temperature, y = y_temperature),
             color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = gdm_fun_q0_plot_temperature, aes(x = max(x_temperature) + 0.1,
-                                                 y = max(y_temperature)), label = "*",
+  geom_text(data = gdm_fun_q0_plot_temperature, aes(x = max(x_temperature) - 0.2,
+                                                 y = max(y_temperature)+ 0.02), label = "***",
             size = 4) + 
   geom_line(data = gdm_fun_q1_plot_temperature, aes(x = x_temperature, y = y_temperature),
             color = fungi_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_fun_q1_plot_temperature, aes(x = max(x_temperature) + 0.1,
-                                                 y = max(y_temperature)), label = "*",
+  geom_text(data = gdm_fun_q1_plot_temperature, aes(x = max(x_temperature) - 0.2,
+                                                 y = max(y_temperature)+ 0.02), label = "***",
             size = 4) + 
   geom_line(data = gdm_fun_q2_plot_temperature, aes(x = x_temperature, y = y_temperature),
             color = fungi_col, linewidth = 0.7, linetype = "dotted") + 
-  geom_text(data = gdm_fun_q2_plot_temperature, aes(x = max(x_temperature) + 0.1,
-                                                 y = max(y_temperature)), label = "*",
+  geom_text(data = gdm_fun_q2_plot_temperature, aes(x = max(x_temperature) - 0.2,
+                                                 y = max(y_temperature)+ 0.02), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1178,15 +1291,18 @@ fungi_temperature_effect
 bacteria_temperature_effect <- ggplot() +
   geom_line(data = gdm_bac_q0_plot_temperature, aes(x = x_temperature, y = y_temperature),
             color = bacteria_col, linewidth = 0.7) + 
+  geom_text(data = gdm_bac_q0_plot_temperature, aes(x = max(x_temperature) - 0.2,
+                                                    y = max(y_temperature)+ 0.01), label = "***",
+            size = 4) + 
   geom_line(data = gdm_bac_q1_plot_temperature, aes(x = x_temperature, y = y_temperature),
             color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_bac_q1_plot_temperature, aes(x = max(x_temperature) + 0.1,
-                                                    y = max(y_temperature)), label = "*",
+  geom_text(data = gdm_bac_q1_plot_temperature, aes(x = max(x_temperature)- 0.2,
+                                                    y = max(y_temperature)+ 0.01), label = "***",
             size = 4) + 
   geom_line(data = gdm_bac_q2_plot_temperature, aes(x = x_temperature, y = y_temperature),
             color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
-  geom_text(data = gdm_bac_q2_plot_temperature, aes(x = max(x_temperature) + 0.1,
-                                                    y = max(y_temperature)), label = "*",
+  geom_text(data = gdm_bac_q2_plot_temperature, aes(x = max(x_temperature)- 0.2,
+                                                    y = max(y_temperature)+ 0.01), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1266,17 +1382,17 @@ bacteria_gini_effect <- ggplot() +
   geom_line(data = gdm_bac_q0_plot_gini, aes(x = x_gini, y = y_gini),
             color = bacteria_col, linewidth = 0.7) + 
   geom_text(data = gdm_bac_q0_plot_gini, aes(x = max(x_gini) + 0.01,
-                                                    y = max(y_gini)), label = "*",
+                                             y = max(y_gini)), label = "*",
             size = 4) + 
   geom_line(data = gdm_bac_q1_plot_gini, aes(x = x_gini, y = y_gini),
             color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
   geom_text(data = gdm_bac_q1_plot_gini, aes(x = max(x_gini) + 0.01,
-                                                    y = max(y_gini)), label = "*",
+                                                    y = max(y_gini)), label = "***",
             size = 4) + 
   geom_line(data = gdm_bac_q2_plot_gini, aes(x = x_gini, y = y_gini),
             color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
   geom_text(data = gdm_bac_q2_plot_gini, aes(x = max(x_gini) + 0.01,
-                                                    y = max(y_gini)), label = "*",
+                                                    y = max(y_gini)), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1321,13 +1437,10 @@ algae_geo_effect <- ggplot() +
             size = 4)  +
   geom_line(data = gdm_alg_q1_plot_geo, aes(x = x_geo, y = y_geo),
             color = algae_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_alg_q1_plot_geo, aes(x = max(x_geo) + 0.2,
-                                             y = max(y_geo)), label = "*",
-            size = 4)  + 
   geom_line(data = gdm_alg_q2_plot_geo, aes(x = x_geo, y = y_geo),
             color = algae_col, linewidth = 0.7, linetype = "dotted") + 
   geom_text(data = gdm_alg_q2_plot_geo, aes(x = max(x_geo) + 0.2,
-                                             y = max(y_geo)), label = "*",
+                                             y = max(y_geo) + 0.001), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1343,20 +1456,11 @@ algae_geo_effect
 ######
 fungi_geo_effect <- ggplot() +
   geom_line(data = gdm_fun_q0_plot_geo, aes(x = x_geo, y = y_geo),
-            color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = gdm_fun_q0_plot_geo, aes(x = max(x_geo) + 0.2,
-                                            y = max(y_geo)), label = "*",
-            size = 4) + 
+            color = fungi_col, linewidth = 0.7)  + 
   geom_line(data = gdm_fun_q1_plot_geo, aes(x = x_geo, y = y_geo),
             color = fungi_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_fun_q1_plot_geo, aes(x = max(x_geo) + 0.2,
-                                            y = max(y_geo)), label = "*",
-            size = 4) + 
   geom_line(data = gdm_fun_q2_plot_geo, aes(x = x_geo, y = y_geo),
             color = fungi_col, linewidth = 0.7, linetype = "dotted") + 
-  geom_text(data = gdm_fun_q2_plot_geo, aes(x = max(x_geo) + 0.2,
-                                            y = max(y_geo)), label = "*",
-            size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
@@ -1488,17 +1592,17 @@ algae_fungi_effect <- ggplot() +
   geom_line(data = gdm_alg_q0_plot_fungi, aes(x = x_fungi, y = y_fungi),
             color = algae_col, linewidth = 0.7) + 
   geom_text(data = gdm_alg_q0_plot_fungi, aes(x = max(x_fungi) + 0.01,
-                                            y = max(y_fungi)), label = "*",
+                                            y = max(y_fungi) + 0.02), label = "*",
             size = 4)  +
   geom_line(data = gdm_alg_q1_plot_fungi, aes(x = x_fungi, y = y_fungi),
             color = algae_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_alg_q1_plot_fungi, aes(x = max(x_fungi) + 0.01,
-                                            y = max(y_fungi)), label = "*",
+  geom_text(data = gdm_alg_q1_plot_fungi, aes(x = max(x_fungi) - 0.02,
+                                            y = max(y_fungi) + 0.02), label = "***",
             size = 4)  + 
   geom_line(data = gdm_alg_q2_plot_fungi, aes(x = x_fungi, y = y_fungi),
             color = algae_col, linewidth = 0.7, linetype = "dotted") + 
-  geom_text(data = gdm_alg_q2_plot_fungi, aes(x = max(x_fungi) + 0.01,
-                                            y = max(y_fungi)), label = "*",
+  geom_text(data = gdm_alg_q2_plot_fungi, aes(x = max(x_fungi) - 0.02,
+                                            y = max(y_fungi) - 0.15), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1515,18 +1619,18 @@ algae_fungi_effect
 bacteria_fungi_effect <- ggplot() +
   geom_line(data = gdm_bac_q0_plot_fungi, aes(x = x_fungi, y = y_fungi),
             color = bacteria_col, linewidth = 0.7) + 
-  geom_text(data = gdm_bac_q0_plot_fungi, aes(x = max(x_fungi) + 0.02,
-                                              y = max(y_fungi)), label = "*",
+  geom_text(data = gdm_bac_q0_plot_fungi, aes(x = max(x_fungi),
+                                              y = max(y_fungi) + 0.02), label = "***",
             size = 4) + 
   geom_line(data = gdm_bac_q1_plot_fungi, aes(x = x_fungi, y = y_fungi),
             color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_bac_q1_plot_fungi, aes(x = max(x_fungi) + 0.02,
-                                              y = max(y_fungi)), label = "*",
+  geom_text(data = gdm_bac_q1_plot_fungi, aes(x = max(x_fungi) - 0.02,
+                                              y = max(y_fungi) + 0.02), label = "***",
             size = 4) + 
   geom_line(data = gdm_bac_q2_plot_fungi, aes(x = x_fungi, y = y_fungi),
             color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
-  geom_text(data = gdm_bac_q2_plot_fungi, aes(x = max(x_fungi) + 0.02,
-                                              y = max(y_fungi)), label = "*",
+  geom_text(data = gdm_bac_q2_plot_fungi, aes(x = max(x_fungi) - 0.02 ,
+                                              y = max(y_fungi) + 0.02), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1559,18 +1663,18 @@ gdm_bac_q2_plot_algae <- data.frame(x_algae = gdm_bac_q2_splineDat$x[,"alg_q2_cq
 fungi_algae_effect <- ggplot() +
   geom_line(data = gdm_fun_q0_plot_algae, aes(x = x_algae, y = y_algae),
             color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = gdm_fun_q0_plot_algae, aes(x = max(x_algae) + 0.02,
-                                              y = max(y_algae)), label = "*",
+  geom_text(data = gdm_fun_q0_plot_algae, aes(x = max(x_algae) - 0.02,
+                                              y = max(y_algae) + 0.01), label = "**",
             size = 4) + 
   geom_line(data = gdm_fun_q1_plot_algae, aes(x = x_algae, y = y_algae),
             color = fungi_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_fun_q1_plot_algae, aes(x = max(x_algae) + 0.02,
-                                              y = max(y_algae)), label = "*",
+  geom_text(data = gdm_fun_q1_plot_algae, aes(x = max(x_algae),
+                                              y = max(y_algae) + 0.01), label = "***",
             size = 4) + 
   geom_line(data = gdm_fun_q2_plot_algae, aes(x = x_algae, y = y_algae),
             color = fungi_col, linewidth = 0.7, linetype = "dotted") + 
   geom_text(data = gdm_fun_q2_plot_algae, aes(x = max(x_algae) + 0.02,
-                                              y = max(y_algae)), label = "*",
+                                              y = max(y_algae) + 0.01), label = "*",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1587,18 +1691,18 @@ fungi_algae_effect
 bacteria_algae_effect <- ggplot() +
   geom_line(data = gdm_bac_q0_plot_algae, aes(x = x_algae, y = y_algae),
             color = bacteria_col, linewidth = 0.7) + 
-  geom_text(data = gdm_bac_q0_plot_algae, aes(x = max(x_algae) + 0.02,
-                                              y = max(y_algae)), label = "*",
+  geom_text(data = gdm_bac_q0_plot_algae, aes(x = max(x_algae) - 0.2,
+                                              y = max(y_algae) - 0.1), label = "***",
             size = 4) + 
   geom_line(data = gdm_bac_q1_plot_algae, aes(x = x_algae, y = y_algae),
             color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_bac_q1_plot_algae, aes(x = max(x_algae) + 0.02,
-                                              y = max(y_algae)), label = "*",
+  geom_text(data = gdm_bac_q1_plot_algae, aes(x = max(x_algae) - 0.02,
+                                              y = max(y_algae) + 0.01), label = "***",
             size = 4) + 
   geom_line(data = gdm_bac_q2_plot_algae, aes(x = x_algae, y = y_algae),
             color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
-  geom_text(data = gdm_bac_q2_plot_algae, aes(x = max(x_algae) + 0.02,
-                                              y = max(y_algae)), label = "*",
+  geom_text(data = gdm_bac_q2_plot_algae, aes(x = max(x_algae) -0.02,
+                                              y = max(y_algae) + 0.01), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1630,18 +1734,18 @@ gdm_alg_q2_plot_bacteria <- data.frame(x_bacteria = gdm_alg_q2_splineDat$x[,"bac
 algae_bacteria_effect <- ggplot() +
   geom_line(data = gdm_alg_q0_plot_bacteria, aes(x = x_bacteria, y = y_bacteria),
             color = algae_col, linewidth = 0.7)  + 
-  geom_text(data = gdm_alg_q0_plot_bacteria, aes(x = max(x_bacteria) + 0.02,
-                                              y = max(y_bacteria)), label = "*",
+  geom_text(data = gdm_alg_q0_plot_bacteria, aes(x = max(x_bacteria) - 0.05,
+                                              y = max(y_bacteria) + 0.01), label = "***",
             size = 4) +
   geom_line(data = gdm_alg_q1_plot_bacteria, aes(x = x_bacteria, y = y_bacteria),
             color = algae_col, linetype = "dotdash", linewidth = 0.7) + 
-  geom_text(data = gdm_alg_q1_plot_bacteria, aes(x = max(x_bacteria) + 0.02,
-                                              y = max(y_bacteria)), label = "*",
+  geom_text(data = gdm_alg_q1_plot_bacteria, aes(x = max(x_bacteria) - 0.05,
+                                              y = max(y_bacteria) - 0.3), label = "***",
             size = 4) + 
   geom_line(data = gdm_alg_q2_plot_bacteria, aes(x = x_bacteria, y = y_bacteria),
             color = algae_col, linetype = "dotted", linewidth = 0.7) + 
-  geom_text(data = gdm_alg_q2_plot_bacteria, aes(x = max(x_bacteria) + 0.02,
-                                              y = max(y_bacteria)), label = "*",
+  geom_text(data = gdm_alg_q2_plot_bacteria, aes(x = max(x_bacteria) - 0.05,
+                                              y = max(y_bacteria) + 0.01), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1658,18 +1762,18 @@ algae_bacteria_effect
 fungi_bacteria_effect <- ggplot() +
   geom_line(data = gdm_fun_q0_plot_bacteria, aes(x = x_bacteria, y = y_bacteria),
             color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = gdm_fun_q0_plot_bacteria, aes(x = max(x_bacteria) + 0.02,
-                                                 y = max(y_bacteria)), label = "*",
+  geom_text(data = gdm_fun_q0_plot_bacteria, aes(x = max(x_bacteria) - 0.05,
+                                                 y = max(y_bacteria) + 0.01), label = "***",
             size = 4) + 
   geom_line(data = gdm_fun_q1_plot_bacteria, aes(x = x_bacteria, y = y_bacteria),
             color = fungi_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_fun_q1_plot_bacteria, aes(x = max(x_bacteria) + 0.02,
-                                                 y = max(y_bacteria)), label = "*",
+  geom_text(data = gdm_fun_q1_plot_bacteria, aes(x = max(x_bacteria) - 0.05,
+                                                 y = max(y_bacteria) + 0.01), label = "***",
             size = 4) + 
   geom_line(data = gdm_fun_q2_plot_bacteria, aes(x = x_bacteria, y = y_bacteria),
             color = fungi_col, linewidth = 0.7, linetype = "dotted") + 
-  geom_text(data = gdm_fun_q2_plot_bacteria, aes(x = max(x_bacteria) + 0.02,
-                                                 y = max(y_bacteria)), label = "*",
+  geom_text(data = gdm_fun_q2_plot_bacteria, aes(x = max(x_bacteria) - 0.05,
+                                                 y = max(y_bacteria) + 0.01), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1727,9 +1831,6 @@ algae_density_effect
 fungi_density_effect <- ggplot() +
   geom_line(data = gdm_fun_q0_plot_density, aes(x = x_density, y = y_density),
             color = fungi_col, linewidth = 0.7) + 
-  geom_text(data = gdm_fun_q0_plot_density, aes(x = max(x_density) + 0.02,
-                                                 y = max(y_density)), label = "*",
-            size = 4) + 
   geom_line(data = gdm_fun_q1_plot_density, aes(x = x_density, y = y_density),
             color = fungi_col, linewidth = 0.7, linetype = "dotdash") + 
   geom_line(data = gdm_fun_q2_plot_density, aes(x = x_density, y = y_density),
@@ -1751,10 +1852,13 @@ bacteria_density_effect <- ggplot() +
             color = bacteria_col, linewidth = 0.7) + 
   geom_line(data = gdm_bac_q1_plot_density, aes(x = x_density, y = y_density),
             color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
+  geom_text(data = gdm_bac_q1_plot_density, aes(x = max(x_density) + 0.02,
+                                                y = max(y_density) + 0.005), label = "*",
+            size = 4) + 
   geom_line(data = gdm_bac_q2_plot_density, aes(x = x_density, y = y_density),
             color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
   geom_text(data = gdm_bac_q2_plot_density, aes(x = max(x_density) + 0.02,
-                                                y = max(y_density)), label = "*",
+                                                y = max(y_density) + 0.005), label = "***",
             size = 4) + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1817,8 +1921,8 @@ fungi_forest_effect <- ggplot() +
   geom_line(data = gdm_fun_q2_plot_forest, aes(x = x_forest, y = y_forest),
             color = fungi_col, linewidth = 0.7, linetype = "dotted") + 
   geom_text(data = gdm_fun_q2_plot_forest, aes(x = max(x_forest) + 0.02,
-                                                y = max(y_forest)), label = "*",
-            size = 4) + 
+                                                y = max(y_forest) + 0.005), label = "*",
+            size = 4)  + 
   theme_bw() + 
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
@@ -1836,9 +1940,6 @@ bacteria_forest_effect <- ggplot() +
             color = bacteria_col, linewidth = 0.7) + 
   geom_line(data = gdm_bac_q1_plot_forest, aes(x = x_forest, y = y_forest),
             color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
-  geom_text(data = gdm_bac_q1_plot_forest, aes(x = max(x_forest) + 0.02,
-                                               y = max(y_forest)), label = "*",
-            size = 4) + 
   geom_line(data = gdm_bac_q2_plot_forest, aes(x = x_forest, y = y_forest),
             color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
   theme_bw() + 
@@ -1918,6 +2019,9 @@ bacteria_dominant_effect <- ggplot() +
             color = bacteria_col, linewidth = 0.7) + 
   geom_line(data = gdm_bac_q1_plot_dominant, aes(x = x_dominant, y = y_dominant),
             color = bacteria_col, linewidth = 0.7, linetype = "dotdash") + 
+  geom_text(data = gdm_bac_q1_plot_dominant, aes(x = max(x_dominant) + 0.01,
+                                               y = max(y_dominant)), label = "*",
+            size = 4)  + 
   geom_line(data = gdm_bac_q2_plot_dominant, aes(x = x_dominant, y = y_dominant),
             color = bacteria_col, linewidth = 0.7, linetype = "dotted") + 
   theme_bw() + 
@@ -2093,14 +2197,15 @@ phy_alg_ord_top25_named <- fantaxtic::name_na_taxa(phy_alg_ord_top25$ps_obj, inc
 
 # Transform the subset dataset to compositional (relative) abundances.
 phy_alg_ord_top25_plot <-  phy_alg_ord_top25_named %>%
-  microbiome::aggregate_taxa(level = "Order") %>%   
+  microbiome::aggregate_taxa(level = "Order") %>%  
+  microViz::tax_sort("name") %>%   
   microbiome::transform(transform = "compositional") 
 
 # Extract the names of the Orders.
 phyloseq::taxa_names(phy_alg_ord_top25_plot) <- phyloseq::tax_table(phy_alg_ord_top25_plot)[, 4]
 
 # Sort the taxa names alphabetically. 
-taxa_names_alg_ord <- base::sort(phyloseq::taxa_names(phy_alg_ord_top25_plot))
+taxa_names_alg_ord <- c(base::sort(phyloseq::taxa_names(phy_alg_ord_top25_plot)))
 
 # To get our desired plotting order and group names we need to change 
 # the exploratory names and order them as factors.
@@ -2115,9 +2220,10 @@ sampledata_algae$exploratory <- base::factor(sampledata_algae$exploratory,
 
 phyloseq::sample_data(phy_alg_ord_top25_plot) <- phyloseq::sample_data(sampledata_algae)
 
+
 # Custom plotting to make a nice stacked barplot. 
 alg_ord_plots <- phy_alg_ord_top25_plot %>%
-  microbiome::plot_composition(group_by =  'exploratory', otu.sort = taxa_names_alg_ord) +
+  microbiome::plot_composition(group_by =  'exploratory', sample.sort = "dominant_tree") +
   ggplot2::scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
   ggplot2::guides(fill = ggplot2::guide_legend(title.position = 'top')) +
   ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(), 
@@ -2126,7 +2232,7 @@ alg_ord_plots <- phy_alg_ord_top25_plot %>%
         panel.background = ggplot2::element_blank(),
         axis.line = ggplot2::element_blank(),
         axis.ticks = ggplot2::element_line(colour = 'black', linewidth = 0.25),
-        axis.text.x =  ggplot2::element_blank(),
+        axis.text.x = ggplot2::element_blank(),
         axis.text.y =  ggplot2::element_text(colour = "black"),
         axis.title = ggplot2::element_text(colour = "black"),
         legend.position = 'bottom', 
@@ -2141,9 +2247,9 @@ alg_ord_plots <- phy_alg_ord_top25_plot %>%
   ggplot2::xlab('Sample') +
   ggplot2::ylab('Relative abundance')  +
   ggplot2::scale_y_continuous(label = scales::percent)  + 
-  ggplot2::labs( subtitle = 'Algae')
+  ggplot2::labs( subtitle = 'Algae') 
 
-alg_ord_plots
+alg_ord_plots 
 
 #BACTERIA
 
@@ -2164,6 +2270,7 @@ phy_bac_ord_top25_named <- fantaxtic::name_na_taxa(phy_bac_ord_top25$ps_obj, inc
 # Transform the subset dataset to compositional (relative) abundances.
 phy_bac_ord_top25_plot <-  phy_bac_ord_top25_named %>%
   microbiome::aggregate_taxa(level = "Order") %>%  
+  microViz::tax_sort("name") %>% 
   microbiome::transform(transform = "compositional") 
 
 # Extract the names of the Orders.
@@ -2188,7 +2295,7 @@ phyloseq::sample_data(phy_bac_ord_top25_plot) <- phyloseq::sample_data(sampledat
 
 # Custom plotting to make a nice stacked barplot. 
 bac_ord_plots <- phy_bac_ord_top25_plot %>%
-  microbiome::plot_composition( group_by =  'exploratory', otu.sort = taxa_names_bac_ord) +
+  microbiome::plot_composition( group_by =  'exploratory', sample.sort = "dominant_tree") +
   ggplot2::scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
   ggplot2::guides(fill = ggplot2::guide_legend(title.position = 'top')) +
   ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(), 
@@ -2196,8 +2303,8 @@ bac_ord_plots <- phy_bac_ord_top25_plot %>%
         panel.grid.minor = ggplot2::element_blank(),
         panel.background = ggplot2::element_blank(),
         axis.line = ggplot2::element_blank(),
-        axis.ticks = ggplot2::element_line(colour = 'black', linewidth = 0.25),
-        axis.text.x =  ggplot2::element_blank(),
+        axis.ticks = ggplot2::element_line(colour = "black", linewidth = 0.25),
+        axis.text.x = ggplot2::element_blank(),
         axis.text.y =  ggplot2::element_text(colour = "black"),
         axis.title = ggplot2::element_text(colour = "black"),
         legend.position = 'bottom', 
@@ -2237,6 +2344,7 @@ phy_fun_ord_top25_named <- fantaxtic::name_na_taxa(phy_fun_ord_top25$ps_obj, inc
 # Transform the subset dataset to compositional (relative) abundances.
 phy_fun_ord_top25_plot <-  phy_fun_ord_top25_named %>%
   microbiome::aggregate_taxa(level = "Order") %>%  
+  microViz::tax_sort("name") %>%  
   microbiome::transform(transform = "compositional") 
 
 # Extract the names of the Orders.
@@ -2260,7 +2368,7 @@ phyloseq::sample_data(phy_fun_ord_top25_plot) <- phyloseq::sample_data(sampledat
 
 # Custom plotting to make a nice stacked barplot. 
 fun_ord_plots <- phy_fun_ord_top25_plot %>%
-  microbiome::plot_composition(group_by =  'exploratory', otu.sort = taxa_names_fun_ord) +
+  microbiome::plot_composition(group_by =  'exploratory', sample.sort = "dominant_tree") +
   ggplot2::scale_fill_manual(values = ggplot2::alpha(my_cols, 0.9), name = 'Order') +
   ggplot2::guides(fill = ggplot2::guide_legend(title.position = 'top')) +
   ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(), 
@@ -2268,8 +2376,8 @@ fun_ord_plots <- phy_fun_ord_top25_plot %>%
         panel.grid.minor = ggplot2::element_blank(),
         panel.background = ggplot2::element_blank(),
         axis.line = ggplot2::element_blank(),
-        axis.ticks = ggplot2::element_line(colour = 'black', linewidth = 0.25),
-        axis.text.x =  ggplot2::element_blank(),
+        axis.ticks = ggplot2::element_line("black", linewidth = 0.25),
+        axis.text.x = ggplot2::element_blank(),
         axis.text.y =  ggplot2::element_text(colour = "black"),
         axis.title = ggplot2::element_text(colour = "black"),
         legend.position = 'bottom', 
@@ -2284,7 +2392,7 @@ fun_ord_plots <- phy_fun_ord_top25_plot %>%
   ggplot2::xlab('Sample') +
   ggplot2::ylab('Relative abundance')  +
   ggplot2::scale_y_continuous(label = scales::percent)  + 
-  ggplot2::labs( subtitle = 'Fungi')
+  ggplot2::labs( subtitle = 'Fungi') 
 fun_ord_plots
 
 
