@@ -11,7 +11,7 @@ This repository contains the data and pre-processing pipeline, as well as the R 
 ## Contacts
 
 **Lukas Dreyling**  
-[E-Mail](mailto:lukas.dreyling@senckenberg.de)  
+[E-Mail](mailto:uc2mvf9sm@mozmail.com)  
 
 **Caterina Penone**  
 [E-Mail](mailto:caterina.penone@unibe.ch)
